@@ -1,0 +1,18 @@
+{
+  "name": "executor-consultor",
+  "version": "0.1.0",
+  "description": "Configure executor e consultor com modelos independentes, backup e restauracao.",
+  "author": {
+    "name": "Gerson Dantas"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Executor Consultor",
+    "shortDescription": "Configure modelos por funcao no Codex.",
+    "longDescription": "Executor cotidiano e consultor para planos, bloqueios e marcos, com configuracao assistida.",
+    "developerName": "Gerson Dantas",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": "Configure meu executor e consultor."
+  }
+}
