@@ -1,8 +1,7 @@
 # Plano técnico: equipe pessoal configurável
 
-Data: 17/09/2026. Estado: proposta para implementação, não implementada.
-Escopo desta entrega: documentação local. Não modifica instalação, configuração
-ativa, marketplace, skills pessoais ou GitHub.
+Data: 17/09/2026. Estado: base implementada; controles rígidos de orçamento e
+telemetria continuam planejados.
 
 ## 1. Resultado esperado e decisões aprovadas
 
@@ -29,9 +28,9 @@ Preservar o nome técnico do plugin nesta etapa para evitar uma migração extra
 ## 2. Evidência e limites da pesquisa
 
 Inspeção local: CLI 0.147.0; plugin 0.1.0; árvore Git limpa antes desta documentação.
-O instalador atual administra três arquivos inteiros e um journal, usa um esforço
-comum para dois papéis, recusa consultor preexistente e AGENTS.md gerado. Não há
-roteador, orçamento de chamadas ou suporte a equipes configuráveis no pacote atual.
+O configurador administra a configuração nativa, agentes, equipe declarativa e
+um journal. A política é injetada por `SessionStart`, sem editar `AGENTS.md`.
+Ainda não há orçamento rígido de chamadas ou roteador externo.
 O comando local de ajuda confirma a existência de `codex debug models`.
 
 A documentação oficial descreve agentes pessoais em `~/.codex/agents/*.toml`,
@@ -196,9 +195,9 @@ contagem de agentes ou RTK gain de economia financeira comprovada.
 6. Verificar hashes e estado. Reexecução idempotente, sem duplicar política.
 
 Preservar providers, endpoints, hooks RTK, credenciais, ferramentas e permissões.
-AGENTS.md gerado deve ser integrado pela fonte existente, nunca sobrescrito.
-Não depender de importação com @. Não presumir que carregar uma skill uma vez
-torna sua política global permanente: instalar instrução curta persistente aprovada.
+Não editar `AGENTS.md`: a política persistente vem do hook `SessionStart` do plugin.
+Não depender de importação com `@`. O hook precisa ser revisado e confiado pelo
+usuário e deve reaplicar contexto após compactação.
 
 O journal 0.1.0 guarda snapshots integrais. Migração deve preservar sua recuperação
 e passar a registrar propriedade das mudanças, sem sobrescrever edições posteriores.

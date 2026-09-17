@@ -15,6 +15,9 @@ Abra uma conversa nova e peça:
 
 > Use configurar-equipe para configurar minha equipe pessoal de agentes.
 
+Na primeira execução, revise e confie o hook do plugin em `/hooks`. O hook injeta
+a política no início da sessão e após compactações, sem modificar `AGENTS.md`.
+
 A instalação do plugin não altera modelos automaticamente. A skill apresenta a
 configuração, valida modelos, mostra os arquivos envolvidos e pede aprovação antes
 de escrever na configuração pessoal.
@@ -29,6 +32,7 @@ de escrever na configuração pessoal.
 - Limite total e destinos de delegação como política orientativa até existir uma
   guarda de runtime validada.
 - Exceções pessoais por projeto, armazenadas fora do repositório do projeto.
+- Política carregada por hook no início da sessão, sem editar `AGENTS.md`.
 
 ## Estrutura atual
 
@@ -37,6 +41,7 @@ de escrever na configuração pessoal.
 plugins/personal-agent-team-codex/
   .codex-plugin/plugin.json
   skills/
+  hooks/
   scripts/
   templates/
 docs/
@@ -52,6 +57,7 @@ parte da implementação atual.
 ```sh
 python3 plugins/personal-agent-team-codex/scripts/test_setup.py
 python3 plugins/personal-agent-team-codex/scripts/test_team_config.py
+python3 plugins/personal-agent-team-codex/scripts/test_session_context.py
 ```
 
 Para teste de instalação limpa, use um `CODEX_HOME` temporário ou outro usuário do
@@ -64,7 +70,7 @@ sistema. O guia detalhado está em
 scripts/build-submission.sh
 ```
 
-O ZIP é criado em `dist/personal-agent-team-codex-0.2.0.zip`. A submissão oficial
+O ZIP é criado em `dist/personal-agent-team-codex-0.3.0.zip`. A submissão oficial
 ainda depende de testes reais no CLI/App, identidade verificada e materiais
 públicos exigidos pela loja.
 
@@ -77,4 +83,5 @@ versão antiga, use `configurar-equipe` para uma instalação 0.2 limpa.
 ## Privacidade
 
 Configurações, journals e backups pessoais não fazem parte do repositório ou do
-ZIP. Não publique esses arquivos. O plugin não envia dados por conta própria.
+ZIP. Não publique esses arquivos. O hook lê apenas `team.json` localmente e o
+plugin não envia dados por conta própria.

@@ -31,14 +31,18 @@ pessoal usando caminho absoluto canônico, nunca no repositório. Mostre uma pr�
 com papéis, níveis, modelos, permissões, limites, arquivos e garantias. Solicite
 aprovação imediatamente antes de escrever.
 
-Gere a especificação JSON em diretório temporário. Execute primeiro:
+Gere a especificação JSON em diretório temporário. A política da equipe é
+carregada pelo hook `SessionStart` do plugin; não edite `AGENTS.md`. Na primeira
+execução, informe que o usuário precisará revisar e confiar o hook em `/hooks`.
+Execute primeiro:
 
 `python3 scripts/team_config.py plan --spec <arquivo>`
 
 Após aprovação, execute `apply` com o mesmo arquivo. Nunca substitua modelos
 indisponíveis silenciosamente. O instalador cria backup privado e recusa agentes
-preexistentes ou alterações posteriores. AGENTS.md gerado exige integração na
-fonte e no gerador existentes, com backup, em vez de sobrescrita.
+preexistentes ou alterações posteriores. Instalações 0.2 que ainda gerenciem
+`AGENTS.md` são migradas pelo script: a versão anterior do arquivo é restaurada
+e a política passa ao hook.
 
 Valide TOML/JSON e abra uma nova conversa. Quando delegação estiver disponível,
 faça uma consulta focada e confira modelo/esforço em metadados, não por declaração

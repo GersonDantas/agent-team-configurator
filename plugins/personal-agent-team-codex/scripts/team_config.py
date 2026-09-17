@@ -8,7 +8,6 @@ import re
 import tempfile
 import tomllib
 
-ROOT = Path(__file__).resolve().parents[1]
 STATE_NAME = "personal-agent-team-codex-state.json"
 LEGACY_STATE_NAME = "executor-consultor-state.json"
 LEVELS = ("rotina", "analise", "critico", "estrategico")
@@ -183,13 +182,27 @@ def _set_agents_limit(text, value):
     return text[:start] + body + text[end:]
 
 
-def _without_policy(text):
-    return re.sub(
-        r"\n*<!-- executor-consultor -->.*?<!-- /executor-consultor -->\n*",
-        "\n",
-        text,
-        flags=re.DOTALL,
-    ).rstrip()
+def effective_team(data, cwd):
+    """Return validated personal configuration with the closest project override."""
+    validate(data)
+    merged = json.loads(json.dumps(data))
+    path = str(Path(cwd).resolve())
+    matches = [
+        (root, value)
+        for root, value in data["project_overrides"].items()
+        if path == root or path.startswith(root.rstrip("/") + "/")
+    ]
+    if matches:
+        _, override = max(matches, key=lambda pair: len(pair[0]))
+        for section in ("levels", "agents", "limits"):
+            if section in override:
+                for key, value in override[section].items():
+                    if isinstance(value, dict) and key in merged[section]:
+                        merged[section][key].update(value)
+                    else:
+                        merged[section][key] = value
+    validate(merged)
+    return merged
 
 
 def _agent_toml(name, item, levels):
@@ -221,17 +234,8 @@ def build_updates(home, data, saved):
     config_text = _set_agents_limit(config_text, data["limits"]["max_concurrent"])
     tomllib.loads(config_text)
 
-    instructions = home / "AGENTS.md"
-    current_policy = instructions.read_text() if instructions.exists() else ""
-    if "Generated file" in current_policy and "AGENTS.md" not in saved:
-        raise ValueError("AGENTS.md gerado: integre a politica na fonte e no gerador existentes")
-    policy = (ROOT / "templates/team-policy.md").read_text().rstrip()
-    policy_text = _without_policy(current_policy)
-    policy_text = (policy_text + "\n\n" + policy + "\n").lstrip("\n")
-
     updates = {
         "config.toml": config_text,
-        "AGENTS.md": policy_text,
         "personal-agent-team-codex/team.json": json.dumps(data, indent=2, ensure_ascii=False) + "\n",
     }
     for name, item in data["agents"].items():
@@ -286,6 +290,7 @@ def apply(home, data, dry=False, uninstall=False):
         },
     }
     if dry:
+        preview["legacy_agents_policy_restore"] = "AGENTS.md" in saved
         print(json.dumps(preview, indent=2, ensure_ascii=False))
         return
     home.mkdir(parents=True, exist_ok=True)
@@ -294,28 +299,27 @@ def apply(home, data, dry=False, uninstall=False):
         target = _safe_target(home, name)
         before = saved[name]["before"] if name in saved else (target.read_text() if target.exists() else None)
         journal[name] = {"before": before, "after": after}
-    _atomic_write(state, json.dumps(journal, indent=2, ensure_ascii=False) + "\n", 0o600)
+    migrating_agents_policy = "AGENTS.md" in saved
+    transition_journal = dict(journal)
+    if migrating_agents_policy:
+        transition_journal["AGENTS.md"] = saved["AGENTS.md"]
+    _atomic_write(state, json.dumps(transition_journal, indent=2, ensure_ascii=False) + "\n", 0o600)
     for name, after in updates.items():
         target = _safe_target(home, name)
         _atomic_write(target, after, 0o600 if name == "personal-agent-team-codex/team.json" else None)
+    if migrating_agents_policy:
+        target = _safe_target(home, "AGENTS.md")
+        before = saved["AGENTS.md"]["before"]
+        if before is None:
+            target.unlink(missing_ok=True)
+        else:
+            _atomic_write(target, before)
+        _atomic_write(state, json.dumps(journal, indent=2, ensure_ascii=False) + "\n", 0o600)
     print(json.dumps(preview, indent=2, ensure_ascii=False))
 
 
 def resolve(data, cwd, agent, level=None):
-    validate(data)
-    merged = json.loads(json.dumps(data))
-    path = str(Path(cwd).resolve())
-    matches = [(root, value) for root, value in data["project_overrides"].items() if path == root or path.startswith(root.rstrip("/") + "/")]
-    if matches:
-        _, override = max(matches, key=lambda pair: len(pair[0]))
-        for section in ("levels", "agents", "limits"):
-            if section in override:
-                for key, value in override[section].items():
-                    if isinstance(value, dict) and key in merged[section]:
-                        merged[section][key].update(value)
-                    else:
-                        merged[section][key] = value
-    validate(merged)
+    merged = effective_team(data, cwd)
     item = merged["agents"][agent]
     selected = level or item["default_level"]
     if LEVELS.index(selected) > LEVELS.index(item["max_level"]):

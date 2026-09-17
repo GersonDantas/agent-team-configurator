@@ -3,7 +3,7 @@ set -eu
 
 repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 plugin_root="$repo_root/plugins/personal-agent-team-codex"
-output="$repo_root/dist/personal-agent-team-codex-0.2.0.zip"
+output="$repo_root/dist/personal-agent-team-codex-0.3.0.zip"
 
 mkdir -p "$repo_root/dist"
 rm -f "$output"

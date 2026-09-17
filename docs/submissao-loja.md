@@ -4,7 +4,9 @@ Estado em 17/09/2026: pacote técnico preparado, submissão ainda não enviada.
 
 ## Modalidade
 
-Enviar como **Skills only**. O plugin não possui MCP remoto, aplicativo ou UI.
+Enviar como **Skills + lifecycle hook local**. O plugin não possui MCP remoto,
+aplicativo ou UI. O hook `SessionStart` lê somente a configuração pessoal local e
+injeta a política da equipe no contexto da sessão; não envia dados à rede.
 
 ## Ficha sugerida
 
@@ -39,6 +41,8 @@ Enviar como **Skills only**. O plugin não possui MCP remoto, aplicativo ou UI.
    Esperado: configuração em CODEX_HOME, nenhuma alteração no repositório.
 5. **Troca de modelo**: alterar somente o consultor.
    Esperado: catálogo validado, prévia, preservação do executor, backup e TOML válido.
+6. **Instruções geradas**: instalar com `AGENTS.md` gerado e confiável.
+   Esperado: arquivo permanece idêntico; política entra pelo hook em início e compactação.
 
 ## Testes negativos
 
@@ -56,6 +60,13 @@ compatíveis, papéis opcionais, níveis Rotina/Análise/Crítico/Estratégico,
 modelos e substitutos aprovados, limite nativo de concorrência quando suportado,
 limite orientativo por tarefa, exceções pessoais por projeto e backup privado.
 Total de chamadas e destinos de delegação não são anunciados como bloqueios técnicos.
+
+## Notas da versão 0.3.0
+
+Move a política persistente para um hook `SessionStart`, preservando `AGENTS.md`
+gerado ou manual. Adiciona contexto após início, retomada, limpeza e compactação,
+com suporte a exceções pessoais por projeto. Instalações 0.2 restauram a versão
+anterior de `AGENTS.md` registrada no journal antes de migrar para o hook.
 
 ## Itens externos obrigatórios
 

@@ -1,0 +1,19 @@
+{
+  "description": "Loads the configured personal agent team at session start.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/scripts/session_context.py\"",
+            "commandWindows": "py -3 \"%PLUGIN_ROOT%\\scripts\\session_context.py\"",
+            "statusMessage": "Loading personal agent team",
+            "additionalContextLimit": 8000
+          }
+        ]
+      }
+    ]
+  }
+}
