@@ -9,7 +9,7 @@ Converse em português. Resolva a raiz do plugin dois níveis acima desta skill.
 Respeite `CODEX_HOME`; inspeção não autoriza escrita.
 
 Leia a configuração atual, agentes pessoais e, quando existir, o estado legado
-do executor-consultor. Descubra modelos com `codex debug models` ou `model/list`.
+do Personal Agent Team. Descubra modelos com `codex debug models` ou `model/list`.
 Mostre no máximo dez opções de cada vez, escolhas atuais primeiro. Não classifique
 por ordem do catálogo, não invente custo/capacidade e identifique catálogo em cache.
 

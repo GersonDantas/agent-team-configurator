@@ -9,11 +9,12 @@ import tempfile
 import tomllib
 
 ROOT = Path(__file__).resolve().parents[1]
-STATE_NAME = "executor-consultor-state.json"
+STATE_NAME = "personal-agent-team-codex-state.json"
+LEGACY_STATE_NAME = "executor-consultor-state.json"
 LEVELS = ("rotina", "analise", "critico", "estrategico")
 EFFORTS = {"none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"}
 NAME = re.compile(r"^[a-z][a-z0-9_-]{0,63}$")
-MANAGED_PATH = re.compile(r"^(config\.toml|AGENTS\.md|executor-consultor/team\.json|agents/[a-z][a-z0-9_-]{0,63}\.toml)$")
+MANAGED_PATH = re.compile(r"^(config\.toml|AGENTS\.md|personal-agent-team-codex/team\.json|agents/[a-z][a-z0-9_-]{0,63}\.toml)$")
 
 
 def _safe_target(home, name):
@@ -231,7 +232,7 @@ def build_updates(home, data, saved):
     updates = {
         "config.toml": config_text,
         "AGENTS.md": policy_text,
-        "executor-consultor/team.json": json.dumps(data, indent=2, ensure_ascii=False) + "\n",
+        "personal-agent-team-codex/team.json": json.dumps(data, indent=2, ensure_ascii=False) + "\n",
     }
     for name, item in data["agents"].items():
         if name == "executor":
@@ -247,6 +248,12 @@ def build_updates(home, data, saved):
 
 def apply(home, data, dry=False, uninstall=False):
     state = home / STATE_NAME
+    legacy_state = home / LEGACY_STATE_NAME
+    if legacy_state.exists():
+        raise ValueError(
+            f"configuracao legada detectada em {legacy_state}; "
+            "use setup.py --uninstall para restaurar a versao 0.1 antes da nova instalacao"
+        )
     saved = _load_state(home)
     for name, entry in saved.items():
         target = _safe_target(home, name)
@@ -290,7 +297,7 @@ def apply(home, data, dry=False, uninstall=False):
     _atomic_write(state, json.dumps(journal, indent=2, ensure_ascii=False) + "\n", 0o600)
     for name, after in updates.items():
         target = _safe_target(home, name)
-        _atomic_write(target, after, 0o600 if name == "executor-consultor/team.json" else None)
+        _atomic_write(target, after, 0o600 if name == "personal-agent-team-codex/team.json" else None)
     print(json.dumps(preview, indent=2, ensure_ascii=False))
 
 
@@ -342,7 +349,7 @@ def main():
         elif args.command == "uninstall":
             apply(args.home, {}, dry=args.dry_run, uninstall=True)
         else:
-            spec = args.spec or args.home / "executor-consultor/team.json"
+            spec = args.spec or args.home / "personal-agent-team-codex/team.json"
             data = json.loads(spec.read_text())
             if args.command == "resolve":
                 resolve(data, args.cwd, args.agent, args.level)

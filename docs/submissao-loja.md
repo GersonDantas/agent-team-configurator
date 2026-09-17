@@ -8,7 +8,7 @@ Enviar como **Skills only**. O plugin não possui MCP remoto, aplicativo ou UI.
 
 ## Ficha sugerida
 
-- Nome: Equipe Pessoal Codex
+- Nome: Personal Agent Team
 - Categoria: Productivity
 - Descrição curta: Configure sua equipe pessoal.
 - Descrição longa: Configure executor, consultor e especialistas pessoais com

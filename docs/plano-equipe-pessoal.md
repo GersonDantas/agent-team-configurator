@@ -6,7 +6,7 @@ ativa, marketplace, skills pessoais ou GitHub.
 
 ## 1. Resultado esperado e decisões aprovadas
 
-Evoluir o executor-consultor para configurar uma equipe pessoal por conversa,
+Evoluir o configurador atual para configurar uma equipe pessoal por conversa,
 sem obrigar o usuário a repetir instruções de roteamento em cada prompt.
 Preservar o nome técnico do plugin nesta etapa para evitar uma migração extra.
 
@@ -87,7 +87,7 @@ Quatro componentes:
 4. Adaptador Codex: gera somente opções suportadas; identifica capacidades e
    nível de garantia. Guarda/registro apenas após o teste de viabilidade.
 
-Local proposto: `$CODEX_HOME/executor-consultor/`, padrão `~/.codex/executor-consultor/`.
+Local adotado: `$CODEX_HOME/personal-agent-team-codex/`, padrão `~/.codex/personal-agent-team-codex/`.
 Usar `team.toml` para escolhas, `projects/` para ajustes pessoais, `state/` para
 eventos/contadores e `backups/` para recuperação. Diretórios privados e arquivos
 sensíveis com permissões restritas; não incluir esses dados no pacote distribuído.
@@ -141,7 +141,7 @@ Papéis sugeridos não significam criação/execução automática de todos os a
 Criar papel próprio por descrição e proposta aprovada. Especialistas começam
 somente leitura; permissões de escrita precisam de autorização separada.
 
-Para techlead-review-v2 e merge-conductor, preservar as classes econômicas atuais,
+Para workflows especializados de revisão e integração, preservar as classificações econômicas existentes,
 os tetos dos agentes comuns, a exceção do consultor e os procedimentos obrigatórios.
 Não mapear Critical/DEEP automaticamente para um modelo mais caro. Os quatro níveis
 do plugin não substituem as classificações internas das skills.

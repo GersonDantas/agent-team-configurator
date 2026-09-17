@@ -1,14 +1,14 @@
 {
-  "name": "executor-consultor",
+  "name": "agent-team-configurator",
   "interface": {
-    "displayName": "Executor Consultor"
+    "displayName": "Agent Team Configurator"
   },
   "plugins": [
     {
-      "name": "executor-consultor",
+      "name": "personal-agent-team-codex",
       "source": {
         "source": "local",
-        "path": "./plugins/executor-consultor"
+        "path": "./plugins/personal-agent-team-codex"
       },
       "policy": {
         "installation": "AVAILABLE",

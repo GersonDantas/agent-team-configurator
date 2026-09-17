@@ -1,147 +1,80 @@
-# Executor Consultor para Codex
+# Agent Team Configurator
 
-Plugin para configurar um modelo executor para o trabalho cotidiano e um
-consultor para decisões importantes, bloqueios e revisão de marcos.
+Repositório multiplataforma para configurar equipes pessoais de agentes. A versão
+atual oferece o pacote Codex **Personal Agent Team**. Um adaptador para Claude Code
+está registrado no roadmap e será desenvolvido em outro pull request.
 
-Configuração inicial sugerida: **Sol medium** como executor e **Astra medium**
-como consultor. As escolhas podem ser alteradas pela skill configurar-modelos.
-A disponibilidade depende da conta e da versão do Codex.
+## Instalar no Codex
 
-## Requisitos
+```sh
+codex plugin marketplace add GersonDantas/agent-team-configurator
+codex plugin add personal-agent-team-codex@agent-team-configurator
+```
 
-- Codex com suporte a plugins, agentes personalizados e delegação.
-- Python 3.11 ou superior para o instalador.
-- Acesso aos modelos escolhidos na sua conta.
-- Para repositório privado, acesso concedido e autenticação Git no GitHub.
+Abra uma conversa nova e peça:
 
-## Instalar
+> Use configurar-equipe para configurar minha equipe pessoal de agentes.
 
-No terminal:
+A instalação do plugin não altera modelos automaticamente. A skill apresenta a
+configuração, valida modelos, mostra os arquivos envolvidos e pede aprovação antes
+de escrever na configuração pessoal.
 
-    codex plugin marketplace add GersonDantas/codex-executor-consultor
-    codex plugin add executor-consultor@executor-consultor
+## O que configura
 
-Abra uma nova conversa e peça:
+- Executor e consultor iniciais.
+- Especialistas pessoais opcionais.
+- Níveis Rotina, Análise, Crítico e Estratégico.
+- Modelos, esforços e alternativas aprovadas.
+- Limite nativo de concorrência quando suportado pelo host.
+- Limite total e destinos de delegação como política orientativa até existir uma
+  guarda de runtime validada.
+- Exceções pessoais por projeto, armazenadas fora do repositório do projeto.
 
-> Use a skill configurar-modelos do plugin executor-consultor para configurar
-> meu executor e consultor. Sugira modelos disponíveis e mostre as escolhas.
+## Estrutura atual
 
-A skill consulta o catálogo, apresenta até dez opções visíveis, valida o esforço
-e aplica as escolhas com backup. A instalação do plugin por si só não altera
-o modelo principal: essa configuração acontece no primeiro uso da skill.
+```text
+.agents/plugins/marketplace.json
+plugins/personal-agent-team-codex/
+  .codex-plugin/plugin.json
+  skills/
+  scripts/
+  templates/
+docs/
+scripts/build-submission.sh
+```
 
-Se o catálogo só estiver disponível em cache, a skill deve informar essa limitação.
-Modelos indisponíveis não devem ser substituídos silenciosamente.
-
-## Funcionamento diário
-
-O executor consulta o consultor:
-
-- Antes de mudanças arquiteturais ou de contrato público.
-- Após duas tentativas substantivas sem resolver o mesmo bloqueio.
-- Ao concluir um marco importante com evidências de validação.
-- Quando você solicita explicitamente.
-
-Uma alteração pequena também exige consulta quando muda um contrato público.
-Perguntas simples normalmente não exigem delegação. O consultor analisa evidências,
-sem editar arquivos nem delegar novamente. O executor avalia a resposta e continua.
-
-A política é uma instrução ao agente, não uma garantia determinística.
-O cliente precisa disponibilizar delegação. Quando não houver suporte, o agente
-deve informar a limitação, nunca simular uma consulta.
-
-## Arquivos criados ou alterados
-
-O instalador respeita CODEX_HOME; por padrão usa ~/.codex.
-
-| Arquivo | Finalidade |
-| --- | --- |
-| config.toml | Modelo e esforço padrão do executor |
-| agents/consultor.toml | Modelo, esforço e instruções do consultor |
-| AGENTS.md | Política de acionamento |
-| executor-consultor-state.json | Backup e registro da instalação |
-
-Configurações de provedores, endpoints, hooks e demais campos são preservadas.
-Conversas existentes podem conservar o modelo escolhido na interface: abra uma
-nova conversa ou selecione o executor desejado.
-
-Se AGENTS.md for gerado ou já existir um consultor, o instalador recusa
-sobrescrita. A skill precisa integrar a política na fonte existente e preservar
-backups próprios. Essa integração manual não é revertida pelo desinstalador padrão.
-
-## Trocar os modelos
-
-Peça:
-
-> Use configurar-modelos para trocar apenas o consultor. Mostre as opções
-> disponíveis e preserve o executor.
-
-O script básico usa o mesmo esforço para os dois papéis. Esforços diferentes
-exigem uma alteração pontual pela skill, com atualização do registro e validação.
-
-Para instalação manual, após verificar os modelos:
-
-    cd plugins/executor-consultor
-    python3 scripts/setup.py --dry-run
-    python3 scripts/setup.py --executor gpt-5.6-sol --consultor gpt-6-astra --effort medium
+A arquitetura multiplataforma futura está documentada em
+[docs/roadmap-multiplataforma.md](docs/roadmap-multiplataforma.md). Ela não faz
+parte da implementação atual.
 
 ## Testar
 
-Em uma nova conversa com o executor selecionado:
+```sh
+python3 plugins/personal-agent-team-codex/scripts/test_setup.py
+python3 plugins/personal-agent-team-codex/scripts/test_team_config.py
+```
 
-> Planeje renomear um campo público customerId para accountId.
-> Avalie compatibilidade e migração. Não implemente nada.
+Para teste de instalação limpa, use um `CODEX_HOME` temporário ou outro usuário do
+sistema. O guia detalhado está em
+[docs/guia-testes-delegacao.md](docs/guia-testes-delegacao.md).
 
-Confira uma chamada real de subagente e seu resultado. Para verificar identidade,
-use metadados de execução, não apenas o modelo dizendo qual é seu nome.
+## Pacote para submissão
 
-Testes locais do instalador, sem alterar a configuração real:
+```sh
+scripts/build-submission.sh
+```
 
-    python3 plugins/executor-consultor/scripts/test_setup.py
+O ZIP é criado em `dist/personal-agent-team-codex-0.2.0.zip`. A submissão oficial
+ainda depende de testes reais no CLI/App, identidade verificada e materiais
+públicos exigidos pela loja.
 
-Cobrem prévia, instalação, atualização, preservação, conflito com edição posterior,
-desinstalação e proteção de arquivos gerados. Os testes usam diretório temporário.
+## Recuperação de versões antigas
 
-## Atualizar
+`setup.py` existe somente para restaurar instalações legadas 0.1 que possuam
+`executor-consultor-state.json`. Ele recusa novas instalações. Após restaurar a
+versão antiga, use `configurar-equipe` para uma instalação 0.2 limpa.
 
-Obtenha a nova versão pelo gerenciamento de marketplaces/plugins da sua versão
-do Codex. Atualizar o pacote não executa a configuração e não troca modelos.
-Execute configurar-modelos para aplicar mudanças intencionais de configuração
-ou de política. As escolhas atuais devem ser preservadas.
+## Privacidade
 
-## Remover
-
-Antes de remover o plugin, na pasta dele:
-
-    python3 scripts/setup.py --uninstall
-
-Depois:
-
-    codex plugin remove executor-consultor@executor-consultor
-
-Se um arquivo gerenciado mudou após a instalação, a restauração é interrompida
-para preservar a edição. Concilie as alterações usando o backup. O instalador
-registra o backup antes das escritas; se houver interrupção parcial, pode ser
-necessária recuperação manual.
-
-## Privacidade e limites
-
-O pacote não contém configurações pessoais, credenciais ou backups do autor.
-O registro local de instalação pode conter configurações privadas: não publique
-executor-consultor-state.json. O instalador não envia dados à rede; a descoberta
-de modelos e as consultas usam os serviços configurados no seu Codex.
-
-Não há garantia de economia. Compare consumo real, tempo e qualidade em tarefas
-equivalentes. Reconsultas excessivas podem aumentar o custo.
-
-## Estrutura
-
-    .agents/plugins/marketplace.json
-    plugins/executor-consultor/
-      .codex-plugin/plugin.json
-      skills/configurar-modelos/SKILL.md
-      templates/
-      scripts/setup.py
-      scripts/test_setup.py
-
-Documentação oficial: https://learn.chatgpt.com/docs/agent-configuration/subagents
+Configurações, journals e backups pessoais não fazem parte do repositório ou do
+ZIP. Não publique esses arquivos. O plugin não envia dados por conta própria.
