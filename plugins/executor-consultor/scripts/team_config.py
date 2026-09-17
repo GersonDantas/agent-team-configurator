@@ -5,7 +5,7 @@ import json
 import os
 from pathlib import Path
 import re
-import sys
+import tempfile
 import tomllib
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -13,6 +13,60 @@ STATE_NAME = "executor-consultor-state.json"
 LEVELS = ("rotina", "analise", "critico", "estrategico")
 EFFORTS = {"none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"}
 NAME = re.compile(r"^[a-z][a-z0-9_-]{0,63}$")
+MANAGED_PATH = re.compile(r"^(config\.toml|AGENTS\.md|executor-consultor/team\.json|agents/[a-z][a-z0-9_-]{0,63}\.toml)$")
+
+
+def _safe_target(home, name):
+    if not isinstance(name, str) or not MANAGED_PATH.fullmatch(name):
+        raise ValueError(f"caminho nao permitido no journal: {name!r}")
+    target = home / name
+    if target.is_symlink():
+        raise ValueError(f"symlink nao permitido como destino: {target}")
+    parent = target.parent
+    while parent != home.parent and parent != home:
+        if parent.is_symlink():
+            raise ValueError(f"symlink nao permitido no caminho: {parent}")
+        parent = parent.parent
+    if parent != home:
+        raise ValueError(f"destino fora do CODEX_HOME: {target}")
+    return target
+
+
+def _load_state(home):
+    state = home / STATE_NAME
+    if not state.exists():
+        return {}
+    raw = json.loads(state.read_text())
+    if not isinstance(raw, dict):
+        raise ValueError("journal invalido")
+    for name, entry in raw.items():
+        _safe_target(home, name)
+        if not isinstance(entry, dict) or set(entry) != {"before", "after"}:
+            raise ValueError(f"entrada invalida no journal: {name}")
+        if entry["before"] is not None and not isinstance(entry["before"], str):
+            raise ValueError(f"backup invalido no journal: {name}")
+        if not isinstance(entry["after"], str):
+            raise ValueError(f"conteudo invalido no journal: {name}")
+    return raw
+
+
+def _atomic_write(path, content, mode=None):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
+    try:
+        if mode is not None:
+            os.fchmod(descriptor, mode)
+        with os.fdopen(descriptor, "w") as stream:
+            stream.write(content)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+    except BaseException:
+        try:
+            os.unlink(temporary)
+        except FileNotFoundError:
+            pass
+        raise
 
 
 def defaults(executor, consultant, effort):
@@ -193,9 +247,9 @@ def build_updates(home, data, saved):
 
 def apply(home, data, dry=False, uninstall=False):
     state = home / STATE_NAME
-    saved = json.loads(state.read_text()) if state.exists() else {}
+    saved = _load_state(home)
     for name, entry in saved.items():
-        target = home / name
+        target = _safe_target(home, name)
         if not target.exists() or target.read_text() != entry["after"]:
             raise ValueError(f"alteracao posterior em {target}; concilie pelo backup {state}")
     if uninstall:
@@ -203,12 +257,11 @@ def apply(home, data, dry=False, uninstall=False):
             print(json.dumps({"restore": list(saved)}, ensure_ascii=False))
             return
         for name, entry in saved.items():
-            target = home / name
+            target = _safe_target(home, name)
             if entry["before"] is None:
                 target.unlink(missing_ok=True)
             else:
-                target.parent.mkdir(parents=True, exist_ok=True)
-                target.write_text(entry["before"])
+                _atomic_write(target, entry["before"])
         state.unlink(missing_ok=True)
         print("Configuracao restaurada.")
         return
@@ -231,16 +284,13 @@ def apply(home, data, dry=False, uninstall=False):
     home.mkdir(parents=True, exist_ok=True)
     journal = {}
     for name, after in updates.items():
-        target = home / name
+        target = _safe_target(home, name)
         before = saved[name]["before"] if name in saved else (target.read_text() if target.exists() else None)
         journal[name] = {"before": before, "after": after}
-    fd = os.open(state, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-    with os.fdopen(fd, "w") as stream:
-        json.dump(journal, stream, indent=2, ensure_ascii=False)
+    _atomic_write(state, json.dumps(journal, indent=2, ensure_ascii=False) + "\n", 0o600)
     for name, after in updates.items():
-        target = home / name
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(after)
+        target = _safe_target(home, name)
+        _atomic_write(target, after, 0o600 if name == "executor-consultor/team.json" else None)
     print(json.dumps(preview, indent=2, ensure_ascii=False))
 
 

@@ -3,7 +3,7 @@ import tempfile
 from pathlib import Path
 import tomllib
 
-from team_config import apply, defaults, resolve, validate
+from team_config import apply, defaults, validate
 
 
 with tempfile.TemporaryDirectory() as directory:
@@ -47,4 +47,16 @@ except ValueError:
 else:
     raise AssertionError("invalid limit accepted")
 
-print("PASS: team plan, apply, idempotence, preservation, refusal, uninstall, invalid input")
+with tempfile.TemporaryDirectory() as directory:
+    home = Path(directory)
+    (home / "executor-consultor-state.json").write_text(
+        json.dumps({"../outside": {"before": None, "after": "bad"}})
+    )
+    try:
+        apply(home, defaults("sol", "astra", "medium"), dry=True)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("path traversal accepted")
+
+print("PASS: team plan, apply, idempotence, preservation, refusal, uninstall, invalid input, journal confinement")
