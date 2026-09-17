@@ -5,6 +5,11 @@ description: Configura ou troca modelos do executor e consultor no Codex, com de
 
 # Configurar modelos
 
+Esta entrada permanece por compatibilidade. Para configurar equipe, papeis,
+niveis, limites ou projetos, use `configurar-equipe`. Para trocar somente os
+modelos existentes, aplique o mesmo fluxo seguro de `configurar-equipe`, sem
+editar manualmente o journal.
+
 Use Portuguese. Resolve the plugin root two levels above this skill directory.
 Read Codex config and agents/consultor.toml, respecting CODEX_HOME.
 Inspection alone does not authorize writes.
@@ -16,10 +21,9 @@ Label cached catalogs as cached. Never silently replace an unavailable model.
 Suggest Sol medium executor and Astra medium consultant for first setup;
 preserve explicit user choices.
 
-After selection, run scripts/setup.py --dry-run from this plugin with chosen
---executor, --consultor and --effort, then apply without --dry-run.
-The script uses one effort for both roles. For different efforts, perform a
-backed-up surgical edit and update the journal after value after validation.
+After selection, generate an approved team specification and run
+`scripts/team_config.py plan --spec <file>`, then use `apply` only after approval.
+Do not edit the journal manually. Keep `setup.py` only for legacy uninstall recovery.
 
 Existing consultants or generated AGENTS.md require integration through existing
 sources, not forced overwrite. Inspect the generator, back up and apply only
@@ -31,6 +35,6 @@ Verify model/effort through execution metadata, never self-reported identity.
 Report unavailable checks. Existing conversations may retain their model:
 advise a new session or explicit selection.
 
-For uninstall, run scripts/setup.py --uninstall before removing the plugin.
-It refuses restoration when managed files changed afterward. Reconcile owned
-changes in that case; never overwrite later edits. Backups are private.
+For version 0.2 installations, preview and run `team_config.py uninstall`. For a
+legacy 0.1 journal, use `setup.py --uninstall` before migration. Both refuse to
+overwrite later edits. Reconcile owned changes manually. Backups are private.

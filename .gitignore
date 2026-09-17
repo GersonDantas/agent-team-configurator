@@ -3,3 +3,6 @@ __pycache__/
 .DS_Store
 executor-consultor-state.json
 .venv/
+dist/
+__pycache__/
+*.pyc
