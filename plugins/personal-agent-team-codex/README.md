@@ -10,13 +10,20 @@ codex plugin marketplace add GersonDantas/agent-team-configurator
 codex plugin add personal-agent-team-codex@agent-team-configurator
 ```
 
-Abra uma conversa nova e use `configurar-equipe`. A skill valida modelos e mostra
-uma prévia antes de alterar a configuração pessoal.
+Abra `codex` no terminal e, dentro do Codex CLI, execute `/hooks`. Revise e confie
+o hook **Loading personal agent team**. O comando `/hooks` não aparece no Codex
+App.
 
-Na primeira conversa após instalar ou atualizar, abra `/hooks`, revise e confie
-o hook **Loading personal agent team**. Ele carrega a política no início e após
-compactações, sem editar `AGENTS.md`. Sem essa confiança, os agentes continuam
-configurados, mas a política de seleção, delegação e limites não entra no contexto.
+Reinicie o Codex App, abra uma conversa nova e use `configurar-equipe`. A skill
+valida modelos e mostra uma prévia antes de alterar a configuração pessoal.
+
+Na primeira conversa após instalar ou atualizar, o hook carrega a política no
+início e após compactações, sem editar `AGENTS.md`. Sem a confiança registrada no
+CLI, os agentes continuam configurados, mas a política de seleção, delegação e
+limites não entra no contexto.
+
+O guia completo de instalação, verificação, atualização e remoção está em
+[../../docs/instalacao.md](../../docs/instalacao.md).
 
 ## Uso manual em ambiente de teste
 

@@ -6,21 +6,42 @@ está registrado no roadmap e será desenvolvido em outro pull request.
 
 ## Instalar no Codex
 
+O plugin usa o mesmo fluxo de marketplace por GitHub adotado por plugins como o
+Ponytail. No terminal, execute:
+
 ```sh
 codex plugin marketplace add GersonDantas/agent-team-configurator
 codex plugin add personal-agent-team-codex@agent-team-configurator
 ```
 
-Abra uma conversa nova e peça:
+Depois, inicie o Codex CLI:
+
+```sh
+codex
+```
+
+Dentro do CLI, abra `/hooks`, revise e confie o hook **Loading personal agent
+team**. O comando `/hooks` existe no Codex CLI; ele não aparece como comando no
+Codex App.
+
+Reinicie o Codex App, abra uma conversa nova e selecione **Personal Agent Team
+Codex: Configurar Equipe**, ou peça:
 
 > Use configurar-equipe para configurar minha equipe pessoal de agentes.
 
-Na primeira execução, revise e confie o hook do plugin em `/hooks`. O hook injeta
-a política no início da sessão e após compactações, sem modificar `AGENTS.md`.
+O hook injeta a política no início da sessão e após compactações, sem modificar
+`AGENTS.md`.
 
 A instalação do plugin não altera modelos automaticamente. A skill apresenta a
 configuração, valida modelos, mostra os arquivos envolvidos e pede aprovação antes
 de escrever na configuração pessoal.
+
+O repositório precisa estar público para instalação aberta. Enquanto estiver
+privado, somente contas com acesso ao repositório e GitHub autenticado poderão
+adicionar o marketplace.
+
+O passo a passo completo, incluindo verificação, atualização e remoção, está em
+[docs/instalacao.md](docs/instalacao.md).
 
 ## O que configura
 

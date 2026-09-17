@@ -33,7 +33,9 @@ aprovação imediatamente antes de escrever.
 
 Gere a especificação JSON em diretório temporário. A política da equipe é
 carregada pelo hook `SessionStart` do plugin; não edite `AGENTS.md`. Na primeira
-execução, informe que o usuário precisará revisar e confiar o hook em `/hooks`.
+execução, informe que o usuário precisará abrir `codex` no terminal, executar
+`/hooks` dentro do Codex CLI e revisar e confiar o hook. Explique que `/hooks`
+não aparece no Codex App e que uma conversa nova deve ser aberta depois.
 Execute primeiro:
 
 `python3 scripts/team_config.py plan --spec <arquivo>`
