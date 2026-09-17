@@ -26,6 +26,7 @@ def defaults(executor, consultant, effort):
                 "instructions": "Execute the task.",
                 "default_level": "analise",
                 "max_level": "estrategico",
+                "requested_read_only": False,
                 "read_only": False,
                 "can_delegate": True,
                 "delegates_to": ["consultor"],
@@ -35,12 +36,13 @@ def defaults(executor, consultant, effort):
                 "instructions": "Review evidence without editing.",
                 "default_level": "estrategico",
                 "max_level": "estrategico",
+                "requested_read_only": True,
                 "read_only": True,
                 "can_delegate": False,
                 "delegates_to": [],
             },
         },
-        "limits": {"max_concurrent": 3, "max_calls_per_task": 6},
+        "limits": {},
         "project_overrides": {},
     }
 
@@ -83,7 +85,9 @@ with tempfile.TemporaryDirectory() as directory:
     assert output["hookSpecificOutput"]["hookEventName"] == "SessionStart"
     assert "consultor" in context
     assert "model=astra" in context
-    assert "max_calls_per_task=2" in context
+    assert "requested_permission=read-only" in context
+    assert "runtime_permission=unverified" in context
+    assert "advisory_max_calls_per_task=2" in context
     assert render_context(data, root / "other").count("# Personal agent team") == 1
 
     team_path.write_text("not-json")

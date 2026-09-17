@@ -1,6 +1,6 @@
 {
   "name": "personal-agent-team-codex",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Configure a personal team of Codex subagents with roles, levels, models, and limits.",
   "author": {
     "name": "Gerson Dantas"

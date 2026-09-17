@@ -19,7 +19,7 @@ with tempfile.TemporaryDirectory() as directory:
     apply(home, data)
     config = tomllib.loads((home / "config.toml").read_text())
     assert config["model"] == "sol"
-    assert config["agents"]["max_concurrent_threads_per_session"] == 3
+    assert "agents" not in config
     assert config["projects"]["example"]["trust_level"] == "trusted"
     assert json.loads((home / "personal-agent-team-codex/team.json").read_text())["schema_version"] == 1
     assert tomllib.loads((home / "agents/consultor.toml").read_text())["model"] == "astra"
@@ -74,6 +74,54 @@ except ValueError:
     pass
 else:
     raise AssertionError("invalid limit accepted")
+
+conflicting_permission = defaults("sol", "astra", "medium")
+conflicting_permission["agents"]["consultor"]["read_only"] = False
+try:
+    validate(conflicting_permission)
+except ValueError:
+    pass
+else:
+    raise AssertionError("conflicting permission aliases accepted")
+
+legacy_permission = defaults("sol", "astra", "medium")
+for agent in legacy_permission["agents"].values():
+    agent.pop("requested_read_only")
+validate(legacy_permission)
+
+with tempfile.TemporaryDirectory() as directory:
+    home = Path(directory)
+    new_permission = defaults("sol", "astra", "medium")
+    for agent in new_permission["agents"].values():
+        agent.pop("read_only")
+    apply(home, new_permission)
+    stored_agents = json.loads(
+        (home / "personal-agent-team-codex/team.json").read_text()
+    )["agents"]
+    assert stored_agents["consultor"]["requested_read_only"] is True
+    assert stored_agents["consultor"]["read_only"] is True
+    apply(home, {}, uninstall=True)
+
+with tempfile.TemporaryDirectory() as directory:
+    home = Path(directory)
+    data = defaults("sol", "astra", "medium")
+    data["limits"] = {"max_concurrent": 4, "max_calls_per_task": 8}
+    apply(home, data)
+    config = tomllib.loads((home / "config.toml").read_text())
+    assert config["agents"]["max_concurrent_threads_per_session"] == 4
+    stored = json.loads((home / "personal-agent-team-codex/team.json").read_text())
+    assert stored["limits"] == {"max_concurrent": 4, "max_calls_per_task": 8}
+    apply(home, {}, uninstall=True)
+
+with tempfile.TemporaryDirectory() as directory:
+    home = Path(directory)
+    existing = '[agents]\nmax_concurrent_threads_per_session = 7\n'
+    (home / "config.toml").write_text(existing)
+    apply(home, defaults("sol", "astra", "medium"))
+    config = tomllib.loads((home / "config.toml").read_text())
+    assert config["agents"]["max_concurrent_threads_per_session"] == 7
+    apply(home, {}, uninstall=True)
+    assert (home / "config.toml").read_text() == existing
 
 with tempfile.TemporaryDirectory() as directory:
     home = Path(directory)

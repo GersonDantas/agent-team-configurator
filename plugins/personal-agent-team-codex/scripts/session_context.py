@@ -38,6 +38,20 @@ def effective_team(data, cwd):
     return team
 
 
+def requested_read_only(item):
+    has_requested = "requested_read_only" in item
+    has_legacy = "read_only" in item
+    if not has_requested and not has_legacy:
+        raise ValueError("agent permission intent is missing")
+    if has_requested and not isinstance(item["requested_read_only"], bool):
+        raise ValueError("requested_read_only must be boolean")
+    if has_legacy and not isinstance(item["read_only"], bool):
+        raise ValueError("read_only must be boolean")
+    if has_requested and has_legacy and item["requested_read_only"] != item["read_only"]:
+        raise ValueError("requested_read_only conflicts with legacy read_only")
+    return item["requested_read_only"] if has_requested else item["read_only"]
+
+
 def render_context(data, cwd):
     team = effective_team(data, cwd)
     lines = [
@@ -47,6 +61,7 @@ def render_context(data, cwd):
         "Only agents explicitly marked as able to delegate may do so, and only to their configured destinations.",
         "More restrictive skill rules and approval, proof, publication, Git, and permission gates still prevail.",
         "Agent levels never expand filesystem, network, write, or external-action permissions.",
+        "Configured agent permissions are requests, not proof of the effective child sandbox. Confirm runtime metadata before claiming technical isolation.",
         "Do not repeat a consultation without new evidence or a new decision.",
         "",
         "Levels:",
@@ -61,12 +76,13 @@ def render_context(data, cwd):
     lines.extend(["", "Agents:"])
     for name, item in team["agents"].items():
         destinations = ", ".join(item.get("delegates_to", [])) or "none"
-        mode = "read-only" if item["read_only"] else "workspace-write"
+        mode = "read-only" if requested_read_only(item) else "workspace-write"
         lines.extend(
             [
                 (
                     f"- {name}: {item['description']} Default={item['default_level']}; "
-                    f"maximum={item['max_level']}; permission={mode}; "
+                    f"maximum={item['max_level']}; requested_permission={mode}; "
+                    "runtime_permission=unverified; "
                     f"can_delegate={str(item['can_delegate']).lower()}; delegates_to={destinations}."
                 ),
                 f"  Instructions: {item['instructions'].strip()}",
@@ -74,16 +90,18 @@ def render_context(data, cwd):
         )
 
     limits = team["limits"]
-    lines.extend(
-        [
-            "",
-            (
-                "Limits: "
-                f"max_concurrent={limits['max_concurrent']}; "
-                f"max_calls_per_task={limits['max_calls_per_task']}."
-            ),
-            "Concurrency is native only when supported by the active host. Total calls and delegation destinations are behavioral policy unless a validated runtime guard reports enforcement.",
-        ]
+    configured_limits = []
+    if "max_concurrent" in limits:
+        configured_limits.append(
+            f"requested_max_concurrent={limits['max_concurrent']} (native config when supported)"
+        )
+    if "max_calls_per_task" in limits:
+        configured_limits.append(
+            f"advisory_max_calls_per_task={limits['max_calls_per_task']} (not runtime-enforced)"
+        )
+    lines.extend(["", "Limits: " + ("; ".join(configured_limits) if configured_limits else "use host defaults; no advisory call budget configured") + "."])
+    lines.append(
+        "Delegation destinations and any call budget are behavioral policy unless a validated runtime guard reports enforcement."
     )
     return "\n".join(lines)
 

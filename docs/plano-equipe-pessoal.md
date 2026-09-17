@@ -19,15 +19,18 @@ Preservar o nome técnico do plugin nesta etapa para evitar uma migração extra
 - Restrições das skills prevalecem; exceções explícitas não removem gates de segurança.
 - Somente o coordenador delega por padrão. Delegação entre agentes é opt-in, com
   destinatários e profundidade limitados.
-- Limites opcionais e editáveis: sugestão de 3 subagentes simultâneos e 6 chamadas
-  por tarefa, considerando a cadeia inteira. Permitir exceções pessoais por projeto.
+- Limites opcionais e avançados. Sem escolha explícita, preservar a configuração
+  existente ou o padrão do host. Concorrência pode usar o controle nativo; orçamento
+  por tarefa permanece orientativo enquanto não houver guarda validada.
 - Avisos curtos e resumo final; registro pessoal mínimo, sem prompts/código completos.
 - Importar a configuração existente; prévia, aprovação e backup antes de aplicar.
 - Skill conversacional como interface inicial; arquivo legível para edição avançada.
 
 ## 2. Evidência e limites da pesquisa
 
-Inspeção local: CLI 0.147.0; plugin 0.1.0; árvore Git limpa antes desta documentação.
+Inspeção inicial: CLI 0.147.0; plugin 0.1.0. Validação posterior no Codex App
+0.155.0-alpha.2.6 mostrou um consultor personalizado solicitado como `read-only`
+executando com sandbox efetivo `workspace-write`, herdado da tarefa principal.
 O configurador administra a configuração nativa, agentes, equipe declarativa e
 um journal. A política é injetada por `SessionStart`, sem editar `AGENTS.md`.
 Ainda não há orçamento rígido de chamadas ou roteador externo.
@@ -64,7 +67,7 @@ instalado não comprova a versão do runtime utilizado pelo aplicativo.
 | Limite simultâneo | Cap nativo de threads abertas, quando suportado | Testar contagem, liberação e filhos aninhados |
 | Total por tarefa | Contador local antes da chamada, se interceptação for comprovada | Não anunciar como limite rígido sem cobertura total |
 | Quem pode delegar e profundidade | Restrições nativas disponíveis + guarda validada | Não presumir chave de profundidade nem suporte por papel |
-| Somente leitura | Sandbox e restrição das ferramentas disponíveis | Sandbox de arquivos sozinho não bloqueia escrita em serviços externos |
+| Somente leitura | Intenção no agente + sandbox efetivo confirmado por metadado | O App pode herdar `workspace-write` da tarefa pai; sem metadado, marcar como não verificado |
 | Exceções pessoais por projeto | Resolução local pelo diretório canônico | Não reescrever config global ao alternar projetos |
 | Avisos e eventos | Política concisa + registro de eventos observados | Separar configuração solicitada de execução comprovada |
 
@@ -132,13 +135,15 @@ modelo/esforço e alternativas; nunca promover permissões junto com o nível.
 | Arquiteto | Estrutura, contratos e migrações | Sobreposição com consultor exige pergunta distinta |
 | Revisor especializado | Segurança, dados, concorrência ou testes | Recebe apenas recorte relevante |
 | Verificador independente | Confirmação de achados | Contexto novo e projeção cega |
-| Analista de merge | Estudo das duas linhas de mudanças | Somente leitura; isolamento conforme skill |
+| Analista de merge | Estudo das duas linhas de mudanças | Solicitar somente leitura e confirmar o sandbox real |
 | Auditor funcional | Fluxos após integração | Não substitui testes de paridade |
 | Pesquisador de documentação | Contratos de APIs e versões | Opcional; fontes primárias |
 
 Papéis sugeridos não significam criação/execução automática de todos os agentes.
-Criar papel próprio por descrição e proposta aprovada. Especialistas começam
-somente leitura; permissões de escrita precisam de autorização separada.
+Criar papel próprio por descrição e proposta aprovada. Especialistas começam com
+intenção de somente leitura; a interface deve mostrar o sandbox como não verificado
+até os metadados da thread confirmarem a restrição. Permissões de escrita precisam
+de autorização separada.
 
 Para workflows especializados de revisão e integração, preservar as classificações econômicas existentes,
 os tetos dos agentes comuns, a exceção do consultor e os procedimentos obrigatórios.
@@ -160,7 +165,8 @@ ou reinício não zeram o orçamento. Objetivo novo precisa ser identificado com
 1. Resolver perfil pessoal e restrições aplicáveis; não abrir configurador a cada prompt.
 2. Decidir se delegar é necessário; trabalho simples pode ficar no executor.
 3. Classificar nível e selecionar apenas combinações aprovadas e compatíveis.
-4. Conferir autorização, independência, destinos, profundidade e orçamento.
+4. Conferir autorização, independência, destinos, profundidade, orçamento e sandbox
+   efetivo quando a tarefa depender de isolamento técnico.
 5. Reservar chamada de modo atômico, anunciar brevemente e executar.
 6. Registrar resultado observado, reconciliar reserva e atualizar resumo.
 
@@ -219,7 +225,8 @@ Desinstalação remove/reverte apenas itens administrados e preserva conteúdo a
 Teste negativo obrigatório: duas chamadas simultâneas disputando a última vaga;
 delegação para destino não permitido; modelo indisponível; esforço inválido; limite
 atingido após compactação; dois projetos em paralelo; custom role com nome colidente;
-ferramenta externa de escrita em perfil somente leitura; fonte AGENTS.md gerada.
+divergência entre permissão solicitada e sandbox efetivo; ferramenta externa de
+escrita; fonte AGENTS.md gerada.
 
 Critério final: usuário configura uma vez, nova sessão usa a política sem prompt
 especial, execução comprova modelos/esforços, migração preserva configurações e

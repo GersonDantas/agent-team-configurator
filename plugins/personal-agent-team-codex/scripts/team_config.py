@@ -84,6 +84,7 @@ def defaults(executor, consultant, effort):
                 "instructions": "Execute a tarefa, delegando apenas quando houver beneficio claro.",
                 "default_level": "analise",
                 "max_level": "estrategico",
+                "requested_read_only": False,
                 "read_only": False,
                 "can_delegate": True,
                 "delegates_to": ["consultor"],
@@ -96,14 +97,29 @@ def defaults(executor, consultant, effort):
                 ),
                 "default_level": "estrategico",
                 "max_level": "estrategico",
+                "requested_read_only": True,
                 "read_only": True,
                 "can_delegate": False,
                 "delegates_to": [],
             },
         },
-        "limits": {"max_concurrent": 3, "max_calls_per_task": 6},
+        "limits": {},
         "project_overrides": {},
     }
+
+
+def _requested_read_only(item, name):
+    has_requested = "requested_read_only" in item
+    has_legacy = "read_only" in item
+    if not has_requested and not has_legacy:
+        raise ValueError(f"permissao solicitada ausente em {name}")
+    if has_requested and not isinstance(item["requested_read_only"], bool):
+        raise ValueError(f"requested_read_only invalido em {name}")
+    if has_legacy and not isinstance(item["read_only"], bool):
+        raise ValueError(f"read_only invalido em {name}")
+    if has_requested and has_legacy and item["requested_read_only"] != item["read_only"]:
+        raise ValueError(f"conflito entre requested_read_only e read_only em {name}")
+    return item["requested_read_only"] if has_requested else item["read_only"]
 
 
 def validate(data):
@@ -133,7 +149,8 @@ def validate(data):
             raise ValueError(f"nivel invalido em {name}")
         if LEVELS.index(item["default_level"]) > LEVELS.index(item["max_level"]):
             raise ValueError(f"nivel padrao excede maximo em {name}")
-        if not isinstance(item.get("read_only"), bool) or not isinstance(item.get("can_delegate"), bool):
+        _requested_read_only(item, name)
+        if not isinstance(item.get("can_delegate"), bool):
             raise ValueError(f"permissoes invalidas em {name}")
         targets = item.get("delegates_to", [])
         if not isinstance(targets, list) or any(x not in agents or x == name for x in targets):
@@ -143,8 +160,11 @@ def validate(data):
     limits = data.get("limits")
     if not isinstance(limits, dict):
         raise ValueError("limits ausente")
-    for key in ("max_concurrent", "max_calls_per_task"):
-        if not isinstance(limits.get(key), int) or limits[key] < 1:
+    unknown_limits = set(limits) - {"max_concurrent", "max_calls_per_task"}
+    if unknown_limits:
+        raise ValueError(f"limites desconhecidos: {sorted(unknown_limits)}")
+    for key in limits:
+        if not isinstance(limits[key], int) or isinstance(limits[key], bool) or limits[key] < 1:
             raise ValueError(f"{key} deve ser inteiro positivo")
     overrides = data.get("project_overrides", {})
     if not isinstance(overrides, dict):
@@ -207,7 +227,7 @@ def effective_team(data, cwd):
 
 def _agent_toml(name, item, levels):
     level = levels[item["default_level"]]
-    sandbox = "read-only" if item["read_only"] else "workspace-write"
+    sandbox = "read-only" if _requested_read_only(item, name) else "workspace-write"
     instructions = item["instructions"].strip()
     if item["can_delegate"]:
         instructions += "\nDelegue somente aos destinos pessoais aprovados e dentro dos limites aplicaveis."
@@ -223,7 +243,17 @@ def _agent_toml(name, item, levels):
     )
 
 
+def _normalized_data(data):
+    normalized = json.loads(json.dumps(data))
+    for name, item in normalized["agents"].items():
+        requested = _requested_read_only(item, name)
+        item["requested_read_only"] = requested
+        item["read_only"] = requested
+    return normalized
+
+
 def build_updates(home, data, saved):
+    data = _normalized_data(data)
     config = home / "config.toml"
     current_config = config.read_text() if config.exists() else ""
     if current_config.strip():
@@ -231,7 +261,8 @@ def build_updates(home, data, saved):
     executor_level = data["levels"][data["agents"]["executor"]["default_level"]]
     config_text = _set_top(current_config, "model", executor_level["model"])
     config_text = _set_top(config_text, "model_reasoning_effort", executor_level["effort"])
-    config_text = _set_agents_limit(config_text, data["limits"]["max_concurrent"])
+    if "max_concurrent" in data["limits"]:
+        config_text = _set_agents_limit(config_text, data["limits"]["max_concurrent"])
     tomllib.loads(config_text)
 
     updates = {
@@ -284,9 +315,16 @@ def apply(home, data, dry=False, uninstall=False):
         "limits": data["limits"],
         "files": sorted(updates),
         "guarantees": {
-            "concurrency": "native_when_supported",
-            "total_calls": "instruction_only",
+            "concurrency": (
+                "native_when_configured_and_supported"
+                if "max_concurrent" in data["limits"]
+                else "host_default_or_existing_config"
+            ),
+            "total_calls": (
+                "instruction_only" if "max_calls_per_task" in data["limits"] else "not_configured"
+            ),
             "delegation_targets": "instruction_only",
+            "permissions": "requested_only_until_runtime_metadata_confirms_effective_sandbox",
         },
     }
     if dry:

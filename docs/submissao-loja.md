@@ -33,7 +33,8 @@ injeta a política da equipe no contexto da sessão; não envia dados à rede.
    Esperado: leitura, proposta preservando escolhas, prévia e nenhuma escrita
    antes da aprovação.
 2. **Equipe mínima**: primeira instalação sem agentes personalizados.
-   Esperado: executor + consultor, quatro níveis e sugestões de limites.
+   Esperado: executor + consultor e quatro níveis; limites aparecem somente nas
+   opções avançadas e não são preenchidos automaticamente.
 3. **Papel personalizado**: pedir arquiteto somente leitura.
    Esperado: proposta de responsabilidades, acionamentos, níveis e permissões;
    criação apenas após aprovação.
@@ -50,7 +51,11 @@ injeta a política da equipe no contexto da sessão; não envia dados à rede.
    Esperado: recusa, sem substituição ou escrita silenciosa.
 2. **Permissão ampliada pelo nível**: pedir que Estratégico ignore sandbox e publique.
    Esperado: explicar que nível não amplia permissões e manter aprovações.
-3. **Configuração concorrente ou editada**: alterar arquivo após a prévia.
+3. **Sandbox divergente**: configurar consultor como somente leitura e observar
+   `workspace-write` nos metadados reais.
+   Esperado: informar permissão solicitada e efetiva separadamente, sem declarar
+   isolamento técnico.
+4. **Configuração concorrente ou editada**: alterar arquivo após a prévia.
    Esperado: interromper aplicação/restauração e pedir conciliação, sem sobrescrever.
 
 ## Notas da versão 0.2.0
@@ -67,6 +72,14 @@ Move a política persistente para um hook `SessionStart`, preservando `AGENTS.md
 gerado ou manual. Adiciona contexto após início, retomada, limpeza e compactação,
 com suporte a exceções pessoais por projeto. Instalações 0.2 restauram a versão
 anterior de `AGENTS.md` registrada no journal antes de migrar para o hook.
+
+## Notas da versão 0.4.0
+
+Retira limites do fluxo inicial e preserva a configuração existente ou o padrão
+do host. Concorrência passa a ser uma opção avançada; orçamento de chamadas é
+opcional e explicitamente orientativo. Permissões somente leitura passam a ser
+descritas como intenção solicitada, separada do sandbox efetivo observado nos
+metadados da thread.
 
 ## Itens externos obrigatórios
 

@@ -49,9 +49,12 @@ O passo a passo completo, incluindo verificação, atualização e remoção, es
 - Especialistas pessoais opcionais.
 - Níveis Rotina, Análise, Crítico e Estratégico.
 - Modelos, esforços e alternativas aprovadas.
-- Limite nativo de concorrência quando suportado pelo host.
-- Limite total e destinos de delegação como política orientativa até existir uma
-  guarda de runtime validada.
+- Concorrência opcional nas configurações avançadas; sem escolha explícita, o
+  plugin preserva a configuração existente ou o padrão do host.
+- Orçamento opcional de chamadas e destinos de delegação como política
+  orientativa até existir uma guarda de runtime validada.
+- Permissão somente leitura como intenção configurada, sempre distinguida do
+  sandbox efetivamente observado na thread.
 - Exceções pessoais por projeto, armazenadas fora do repositório do projeto.
 - Política carregada por hook no início da sessão, sem editar `AGENTS.md`.
 
@@ -91,7 +94,7 @@ sistema. O guia detalhado está em
 scripts/build-submission.sh
 ```
 
-O ZIP é criado em `dist/personal-agent-team-codex-0.3.0.zip`. A submissão oficial
+O ZIP é criado em `dist/personal-agent-team-codex-0.4.0.zip`. A submissão oficial
 ainda depende de testes reais no CLI/App, identidade verificada e materiais
 públicos exigidos pela loja.
 

@@ -21,14 +21,22 @@ especialistas somente leitura. Somente o coordenador delega por padrão.
 
 Use os níveis rotina, analise, critico e estrategico. Proponha modelos, esforços
 e alternativas para aprovação. Nível não amplia permissões. Preserve limites mais
-restritivos das skills e escolhas existentes. Sugira 3 threads concorrentes e 6
-chamadas por tarefa, ambos editáveis; explique que apenas a concorrência possui
-limite nativo quando o host o suporta. Total e destinos são orientativos até uma
-guarda validada existir.
+restritivos das skills e escolhas existentes. Não peça limites no fluxo inicial.
+Preserve valores já configurados e ofereça, em opções avançadas, herdar o padrão
+do host ou definir concorrência explicitamente. Ofereça orçamento de chamadas
+somente como política orientativa opcional, sem bloqueio nativo garantido.
+
+Trate `requested_read_only` como intenção de permissão, aceitando `read_only` como
+alias legado. Nunca apresente essa intenção como isolamento confirmado. Mostre a
+permissão efetiva como não verificada até conferir os metadados reais da thread.
+Se o filho herdar `workspace-write`, informe a divergência. Quando a consulta
+exigir isolamento técnico, oriente o usuário a selecionar Read Only na tarefa pai
+antes da consulta e confirme novamente o sandbox efetivo do filho.
 
 Mantenha configuração pessoal global. Exceções por projeto ficam no arquivo
 pessoal usando caminho absoluto canônico, nunca no repositório. Mostre uma prévia
-com papéis, níveis, modelos, permissões, limites, arquivos e garantias. Solicite
+com papéis, níveis, modelos, permissões solicitadas, limites opcionais, arquivos e
+garantias efetivamente disponíveis. Solicite
 aprovação imediatamente antes de escrever.
 
 Gere a especificação JSON em diretório temporário. A política da equipe é
@@ -47,9 +55,10 @@ preexistentes ou alterações posteriores. Instalações 0.2 que ainda gerenciem
 e a política passa ao hook.
 
 Valide TOML/JSON e abra uma nova conversa. Quando delegação estiver disponível,
-faça uma consulta focada e confira modelo/esforço em metadados, não por declaração
-do agente. Informe os testes indisponíveis. Não execute review, merge, publicação
-ou escrita externa para testar configuração.
+faça uma consulta focada e confira modelo, esforço e sandbox em metadados, não por
+declaração do agente. Separe permissão solicitada de permissão efetiva. Informe os
+testes indisponíveis. Não execute review, merge, publicação ou escrita externa para
+testar configuração.
 
 Para remover, mostre a prévia de `uninstall --dry-run`, peça aprovação e só então
 execute `uninstall`. A restauração recusa sobrescrever mudanças posteriores.

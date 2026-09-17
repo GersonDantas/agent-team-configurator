@@ -33,11 +33,13 @@ python3 scripts/team_config.py plan --spec /tmp/equipe.json
 python3 scripts/team_config.py apply --spec /tmp/equipe.json
 ```
 
-Revise o arquivo temporário antes de aplicar. O total de chamadas e os destinos de
-delegação são políticas orientativas; apenas a concorrência possui limite nativo
-quando o host oferece suporte.
+Revise o arquivo temporário antes de aplicar. Concorrência é uma opção avançada e
+usa o controle nativo quando configurada e suportada pelo host. O orçamento total
+de chamadas e os destinos de delegação são políticas orientativas. Uma permissão
+`read-only` no agente representa a intenção configurada; confirme o sandbox real
+nos metadados da thread antes de tratar o agente como tecnicamente isolado.
 
-## Remover uma instalação 0.2 ou 0.3
+## Remover uma instalação 0.2 ou posterior
 
 ```sh
 python3 scripts/team_config.py uninstall --dry-run

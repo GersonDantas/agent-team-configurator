@@ -9,9 +9,10 @@ Distinguir três resultados: controle imposto pelo runtime, controle imposto por
 uma guarda do plugin e comportamento obedecido apenas por instruções.
 Um agente dizer que respeitou o limite não comprova bloqueio técnico.
 
-O plugin 0.1.0 ainda não implementa orçamento total, lista de destinos ou controle
-de profundidade. Os testes dessas funções são critérios para um protótipo futuro.
-Não confundir uma função ausente com regressão do plugin atual.
+O plugin 0.4.0 não preenche limites no fluxo inicial. Concorrência explícita usa
+a configuração nativa do host; orçamento total, lista de destinos e controle de
+profundidade permanecem orientativos. Os testes de bloqueio dessas funções são
+critérios para uma guarda futura. Não confundir uma função ausente com regressão.
 
 ## 1. Preparar sem afetar o uso diário
 
@@ -221,6 +222,12 @@ leitura deve bloquear a escrita por controle efetivo, não apenas recusa verbal.
 Integrações de escrita externa devem estar ausentes ou bloqueadas separadamente;
 não teste enviando mensagens ou criando dados reais. Não conceda escalada para
 fazer passar um teste de isolamento.
+
+Registre separadamente `requested_read_only` e o `sandbox_policy` observado. No
+App 0.155.0-alpha.2.6 foi observada herança de `workspace-write` da tarefa pai,
+mesmo com o agente personalizado configurado como `read-only`. Repita com a tarefa
+pai em Read Only e confirme o metadado do filho; a seleção no pai é uma mitigação,
+não prova universal para outras versões ou ferramentas externas.
 
 ## 10. T7: modelos e compatibilidade com skills
 
