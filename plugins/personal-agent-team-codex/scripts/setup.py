@@ -80,6 +80,8 @@ if __name__ == "__main__":
     parser.add_argument("--uninstall", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
+    if not args.uninstall:
+        parser.exit(2, "setup.py e somente o recuperador legado 0.1; use team_config.py para novas instalacoes\n")
     try:
         apply(args.home, args.executor, args.consultor, args.effort, args.uninstall, args.dry_run)
     except (ValueError, OSError) as error:

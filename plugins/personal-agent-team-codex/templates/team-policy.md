@@ -2,7 +2,7 @@
 ## Personal agent team
 
 For delegated work, read the personal configuration at
-`~/.codex/executor-consultor/team.json` (respect `CODEX_HOME`). Choose the lowest
+`~/.codex/personal-agent-team-codex/team.json` (respect `CODEX_HOME`). Choose the lowest
 approved level sufficient for the task: rotina, analise, critico or estrategico.
 Stay within the agent's maximum level and approved fallbacks. Announce the role,
 level and reason briefly; summarize calls and substitutions at the end.

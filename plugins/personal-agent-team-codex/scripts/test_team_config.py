@@ -14,13 +14,13 @@ with tempfile.TemporaryDirectory() as directory:
     data = defaults("sol", "astra", "medium")
     validate(data)
     apply(home, data, dry=True)
-    assert not (home / "executor-consultor-state.json").exists()
+    assert not (home / "personal-agent-team-codex-state.json").exists()
     apply(home, data)
     config = tomllib.loads((home / "config.toml").read_text())
     assert config["model"] == "sol"
     assert config["agents"]["max_concurrent_threads_per_session"] == 3
     assert config["projects"]["example"]["trust_level"] == "trusted"
-    assert json.loads((home / "executor-consultor/team.json").read_text())["schema_version"] == 1
+    assert json.loads((home / "personal-agent-team-codex/team.json").read_text())["schema_version"] == 1
     assert tomllib.loads((home / "agents/consultor.toml").read_text())["model"] == "astra"
     assert (home / "AGENTS.md").read_text().count("<!-- executor-consultor -->") == 1
     apply(home, data)
@@ -49,7 +49,7 @@ else:
 
 with tempfile.TemporaryDirectory() as directory:
     home = Path(directory)
-    (home / "executor-consultor-state.json").write_text(
+    (home / "personal-agent-team-codex-state.json").write_text(
         json.dumps({"../outside": {"before": None, "after": "bad"}})
     )
     try:
@@ -59,4 +59,14 @@ with tempfile.TemporaryDirectory() as directory:
     else:
         raise AssertionError("path traversal accepted")
 
-print("PASS: team plan, apply, idempotence, preservation, refusal, uninstall, invalid input, journal confinement")
+with tempfile.TemporaryDirectory() as directory:
+    home = Path(directory)
+    (home / "executor-consultor-state.json").write_text("{}")
+    try:
+        apply(home, defaults("sol", "astra", "medium"), dry=True)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("legacy state accepted")
+
+print("PASS: team plan, apply, idempotence, preservation, refusal, uninstall, invalid input, journal confinement, legacy block")

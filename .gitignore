@@ -2,6 +2,7 @@ __pycache__/
 *.pyc
 .DS_Store
 executor-consultor-state.json
+personal-agent-team-codex-state.json
 .venv/
 dist/
 __pycache__/
