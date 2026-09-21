@@ -57,6 +57,9 @@ O passo a passo completo, incluindo verificação, atualização e remoção, es
   sandbox efetivamente observado na thread.
 - Exceções pessoais por projeto, armazenadas fora do repositório do projeto.
 - Política carregada por hook no início da sessão, sem editar `AGENTS.md`.
+- Acionamentos e exclusões configuráveis por agente.
+- Workflows de consulta sob acionamento ou revisão obrigatória de plano.
+- Contrato de resposta com resultados que liberam ou mantêm a etapa pendente.
 
 ## Estrutura atual
 
@@ -94,7 +97,7 @@ sistema. O guia detalhado está em
 scripts/build-submission.sh
 ```
 
-O ZIP é criado em `dist/personal-agent-team-codex-0.4.0.zip`. A submissão oficial
+O ZIP é criado em `dist/personal-agent-team-codex-0.5.0.zip`. A submissão oficial
 ainda depende de testes reais no CLI/App, identidade verificada e materiais
 públicos exigidos pela loja.
 

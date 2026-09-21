@@ -81,6 +81,16 @@ opcional e explicitamente orientativo. Permissões somente leitura passam a ser
 descritas como intenção solicitada, separada do sandbox efetivo observado nos
 metadados da thread.
 
+## Notas da versão 0.5.0
+
+Adiciona acionamentos e exclusões por agente, os workflows
+`consultation_on_trigger` e `reviewed_plan`, e contratos de resposta com resultados
+bloqueantes. Centraliza validação, migração e resolução por projeto para o
+configurador e o hook usarem a mesma interpretação. Configurações v1 permanecem
+compatíveis e só são persistidas como v2 durante aplicação autorizada, sem ativar
+acionamentos obrigatórios por inferência. Workflows e gates permanecem política
+comportamental até existir uma guarda de runtime validada.
+
 ## Itens externos obrigatórios
 
 Preencher antes da submissão:

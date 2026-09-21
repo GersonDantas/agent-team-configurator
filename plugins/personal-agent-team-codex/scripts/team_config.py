@@ -8,9 +8,20 @@ import re
 import tempfile
 import tomllib
 
+from team_schema import (
+    CONSULTOR_CONTRACT,
+    CONSULTOR_TRIGGERS,
+    LEVELS,
+    SCHEMA_VERSION,
+    WORKFLOWS,
+    effective_team,
+    requested_read_only,
+    validate as validate_schema,
+)
+from session_context import render_context
+
 STATE_NAME = "personal-agent-team-codex-state.json"
 LEGACY_STATE_NAME = "executor-consultor-state.json"
-LEVELS = ("rotina", "analise", "critico", "estrategico")
 EFFORTS = {"none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"}
 NAME = re.compile(r"^[a-z][a-z0-9_-]{0,63}$")
 MANAGED_PATH = re.compile(r"^(config\.toml|AGENTS\.md|personal-agent-team-codex/team\.json|agents/[a-z][a-z0-9_-]{0,63}\.toml)$")
@@ -71,7 +82,7 @@ def _atomic_write(path, content, mode=None):
 
 def defaults(executor, consultant, effort):
     return {
-        "schema_version": 1,
+        "schema_version": SCHEMA_VERSION,
         "levels": {
             "rotina": {"model": executor, "effort": effort, "fallbacks": []},
             "analise": {"model": executor, "effort": effort, "fallbacks": []},
@@ -88,6 +99,9 @@ def defaults(executor, consultant, effort):
                 "read_only": False,
                 "can_delegate": True,
                 "delegates_to": ["consultor"],
+                "triggers": [],
+                "exclusions": [],
+                "response_contract": {},
             },
             "consultor": {
                 "description": "Consulta planos importantes, bloqueios e marcos.",
@@ -101,7 +115,16 @@ def defaults(executor, consultant, effort):
                 "read_only": True,
                 "can_delegate": False,
                 "delegates_to": [],
+                "triggers": json.loads(json.dumps(CONSULTOR_TRIGGERS)),
+                "exclusions": [
+                    "Formatacao, mudanca mecanica ou correcao local pequena quando nenhum acionamento obrigatorio se aplica."
+                ],
+                "response_contract": json.loads(json.dumps(CONSULTOR_CONTRACT)),
             },
+        },
+        "workflow": {
+            "active": "consultation_on_trigger",
+            "definitions": json.loads(json.dumps(WORKFLOWS)),
         },
         "limits": {},
         "project_overrides": {},
@@ -109,73 +132,14 @@ def defaults(executor, consultant, effort):
 
 
 def _requested_read_only(item, name):
-    has_requested = "requested_read_only" in item
-    has_legacy = "read_only" in item
-    if not has_requested and not has_legacy:
-        raise ValueError(f"permissao solicitada ausente em {name}")
-    if has_requested and not isinstance(item["requested_read_only"], bool):
-        raise ValueError(f"requested_read_only invalido em {name}")
-    if has_legacy and not isinstance(item["read_only"], bool):
-        raise ValueError(f"read_only invalido em {name}")
-    if has_requested and has_legacy and item["requested_read_only"] != item["read_only"]:
-        raise ValueError(f"conflito entre requested_read_only e read_only em {name}")
-    return item["requested_read_only"] if has_requested else item["read_only"]
+    try:
+        return requested_read_only(item)
+    except ValueError as error:
+        raise ValueError(f"permissao invalida em {name}: {error}") from error
 
 
 def validate(data):
-    if data.get("schema_version") != 1:
-        raise ValueError("schema_version deve ser 1")
-    levels = data.get("levels")
-    if not isinstance(levels, dict) or set(levels) != set(LEVELS):
-        raise ValueError("levels deve conter rotina, analise, critico e estrategico")
-    for level, item in levels.items():
-        if not isinstance(item, dict) or not isinstance(item.get("model"), str) or not item["model"]:
-            raise ValueError(f"modelo invalido em {level}")
-        if item.get("effort") not in EFFORTS:
-            raise ValueError(f"esforco invalido em {level}")
-        fallbacks = item.get("fallbacks", [])
-        if not isinstance(fallbacks, list) or any(not isinstance(x, str) or not x for x in fallbacks):
-            raise ValueError(f"fallbacks invalidos em {level}")
-    agents = data.get("agents")
-    if not isinstance(agents, dict) or "executor" not in agents or "consultor" not in agents:
-        raise ValueError("agents deve conter executor e consultor")
-    for name, item in agents.items():
-        if not NAME.fullmatch(name) or not isinstance(item, dict):
-            raise ValueError(f"agente invalido: {name}")
-        for field in ("description", "instructions"):
-            if not isinstance(item.get(field), str) or not item[field].strip() or '"""' in item[field]:
-                raise ValueError(f"{field} invalido em {name}")
-        if item.get("default_level") not in LEVELS or item.get("max_level") not in LEVELS:
-            raise ValueError(f"nivel invalido em {name}")
-        if LEVELS.index(item["default_level"]) > LEVELS.index(item["max_level"]):
-            raise ValueError(f"nivel padrao excede maximo em {name}")
-        _requested_read_only(item, name)
-        if not isinstance(item.get("can_delegate"), bool):
-            raise ValueError(f"permissoes invalidas em {name}")
-        targets = item.get("delegates_to", [])
-        if not isinstance(targets, list) or any(x not in agents or x == name for x in targets):
-            raise ValueError(f"destinos invalidos em {name}")
-        if not item["can_delegate"] and targets:
-            raise ValueError(f"{name} nao pode delegar, mas possui destinos")
-    limits = data.get("limits")
-    if not isinstance(limits, dict):
-        raise ValueError("limits ausente")
-    unknown_limits = set(limits) - {"max_concurrent", "max_calls_per_task"}
-    if unknown_limits:
-        raise ValueError(f"limites desconhecidos: {sorted(unknown_limits)}")
-    for key in limits:
-        if not isinstance(limits[key], int) or isinstance(limits[key], bool) or limits[key] < 1:
-            raise ValueError(f"{key} deve ser inteiro positivo")
-    overrides = data.get("project_overrides", {})
-    if not isinstance(overrides, dict):
-        raise ValueError("project_overrides deve ser objeto")
-    for path, override in overrides.items():
-        if not Path(path).is_absolute() or not isinstance(override, dict):
-            raise ValueError(f"excecao de projeto invalida: {path}")
-        unknown = set(override) - {"limits", "agents", "levels"}
-        if unknown:
-            raise ValueError(f"campos desconhecidos em {path}: {sorted(unknown)}")
-    return data
+    return validate_schema(data)
 
 
 def _set_top(text, key, value):
@@ -202,29 +166,6 @@ def _set_agents_limit(text, value):
     return text[:start] + body + text[end:]
 
 
-def effective_team(data, cwd):
-    """Return validated personal configuration with the closest project override."""
-    validate(data)
-    merged = json.loads(json.dumps(data))
-    path = str(Path(cwd).resolve())
-    matches = [
-        (root, value)
-        for root, value in data["project_overrides"].items()
-        if path == root or path.startswith(root.rstrip("/") + "/")
-    ]
-    if matches:
-        _, override = max(matches, key=lambda pair: len(pair[0]))
-        for section in ("levels", "agents", "limits"):
-            if section in override:
-                for key, value in override[section].items():
-                    if isinstance(value, dict) and key in merged[section]:
-                        merged[section][key].update(value)
-                    else:
-                        merged[section][key] = value
-    validate(merged)
-    return merged
-
-
 def _agent_toml(name, item, levels):
     level = levels[item["default_level"]]
     sandbox = "read-only" if _requested_read_only(item, name) else "workspace-write"
@@ -233,6 +174,8 @@ def _agent_toml(name, item, levels):
         instructions += "\nDelegue somente aos destinos pessoais aprovados e dentro dos limites aplicaveis."
     else:
         instructions += "\nNao delegue a outros agentes."
+    if item.get("response_contract"):
+        instructions += "\nSiga o contrato de resposta efetivo fornecido pelo coordenador para a tarefa."
     return (
         f"name = {json.dumps(name)}\n"
         f"description = {json.dumps(item['description'])}\n"
@@ -244,7 +187,7 @@ def _agent_toml(name, item, levels):
 
 
 def _normalized_data(data):
-    normalized = json.loads(json.dumps(data))
+    normalized = validate(data)
     for name, item in normalized["agents"].items():
         requested = _requested_read_only(item, name)
         item["requested_read_only"] = requested
@@ -254,6 +197,9 @@ def _normalized_data(data):
 
 def build_updates(home, data, saved):
     data = _normalized_data(data)
+    render_context(data, home)
+    for project_path in data["project_overrides"]:
+        render_context(data, project_path)
     config = home / "config.toml"
     current_config = config.read_text() if config.exists() else ""
     if current_config.strip():
@@ -307,12 +253,19 @@ def apply(home, data, dry=False, uninstall=False):
         state.unlink(missing_ok=True)
         print("Configuracao restaurada.")
         return
-    validate(data)
+    data = _normalized_data(data)
     updates = build_updates(home, data, saved)
     preview = {
         "executor": data["agents"]["executor"]["default_level"],
         "agents": sorted(data["agents"]),
         "limits": data["limits"],
+        "workflow": data["workflow"]["active"],
+        "required_triggers": sum(
+            1
+            for item in data["agents"].values()
+            for trigger in item.get("triggers", [])
+            if trigger["required"]
+        ),
         "files": sorted(updates),
         "guarantees": {
             "concurrency": (
@@ -324,6 +277,7 @@ def apply(home, data, dry=False, uninstall=False):
                 "instruction_only" if "max_calls_per_task" in data["limits"] else "not_configured"
             ),
             "delegation_targets": "instruction_only",
+            "workflow_and_triggers": "instruction_only",
             "permissions": "requested_only_until_runtime_metadata_confirms_effective_sandbox",
         },
     }

@@ -1,7 +1,7 @@
 {
   "name": "personal-agent-team-codex",
-  "version": "0.4.0",
-  "description": "Configure a personal team of Codex subagents with roles, levels, models, and limits.",
+  "version": "0.5.0",
+  "description": "Configure a personal team of Codex subagents with roles, workflows, triggers, models, and limits.",
   "author": {
     "name": "Gerson Dantas"
   },
@@ -9,7 +9,7 @@
   "interface": {
     "displayName": "Personal Agent Team",
     "shortDescription": "Configure your personal agent team.",
-    "longDescription": "Configure an executor, consultant, and optional personal specialists with levels, models, limits, and backups.",
+    "longDescription": "Configure an executor, consultant, and optional personal specialists with workflows, triggers, response contracts, levels, models, limits, and backups.",
     "developerName": "Gerson Dantas",
     "category": "Productivity",
     "capabilities": [],

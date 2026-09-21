@@ -53,6 +53,11 @@ níveis e limites.
 A configuração é pessoal e fica fora dos repositórios de trabalho. O plugin
 mostra uma prévia e pede aprovação antes de escrever os arquivos.
 
+Na configuração inicial, escolha entre consulta sob acionamento (recomendado) e
+plano sempre revisado. Acionamentos, exclusões e o contrato de resposta podem ser
+personalizados. Esses controles são políticas carregadas no contexto; a interface
+identifica separadamente qualquer controle que o runtime imponha tecnicamente.
+
 ## Verificar
 
 No terminal, confirme que o plugin está instalado e habilitado:
@@ -70,6 +75,12 @@ personal-agent-team-codex@agent-team-configurator  installed, enabled
 Depois de configurar a equipe, abra outra conversa no Codex App. A nova conversa
 deve carregar a política automaticamente. A configuração não deve adicionar nem
 alterar `AGENTS.md` do usuário ou do projeto.
+
+Para conferir o fluxo, peça uma mudança de contrato público e verifique se o
+consultor é chamado antes da implementação. Em seguida, peça uma alteração
+mecânica pequena e confirme que ela não gera consulta quando nenhum acionamento
+obrigatório se aplica. Uma resposta `revise`, `insufficient_information`,
+interrompida ou inválida deve manter o passo dependente pendente.
 
 ## Atualizar
 

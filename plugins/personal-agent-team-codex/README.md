@@ -1,7 +1,7 @@
 # Personal Agent Team for Codex
 
 Plugin Codex para configurar uma equipe pessoal com executor, consultor,
-especialistas opcionais, níveis, modelos e limites.
+especialistas opcionais, níveis, modelos, limites, acionamentos e workflows.
 
 ## Instalação pelo repositório
 
@@ -38,6 +38,13 @@ usa o controle nativo quando configurada e suportada pelo host. O orçamento tot
 de chamadas e os destinos de delegação são políticas orientativas. Uma permissão
 `read-only` no agente representa a intenção configurada; confirme o sandbox real
 nos metadados da thread antes de tratar o agente como tecnicamente isolado.
+
+O workflow recomendado `consultation_on_trigger` consulta apenas quando um
+acionamento configurado se aplica. `reviewed_plan` exige parecer sobre o plano
+antes da implementação. Transições, classificação de acionamentos e formato da
+resposta são políticas comportamentais enquanto não houver uma guarda de runtime
+validada. Configurações v1 continuam legíveis e são persistidas como v2 no próximo
+`apply`, sem criação automática de acionamentos obrigatórios.
 
 ## Remover uma instalação 0.2 ou posterior
 

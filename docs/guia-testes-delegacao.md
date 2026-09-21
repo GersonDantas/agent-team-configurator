@@ -9,10 +9,18 @@ Distinguir três resultados: controle imposto pelo runtime, controle imposto por
 uma guarda do plugin e comportamento obedecido apenas por instruções.
 Um agente dizer que respeitou o limite não comprova bloqueio técnico.
 
-O plugin 0.4.0 não preenche limites no fluxo inicial. Concorrência explícita usa
+O plugin 0.5.0 não preenche limites no fluxo inicial. Concorrência explícita usa
 a configuração nativa do host; orçamento total, lista de destinos e controle de
 profundidade permanecem orientativos. Os testes de bloqueio dessas funções são
 critérios para uma guarda futura. Não confundir uma função ausente com regressão.
+
+Os workflows também são orientativos. Em `consultation_on_trigger`, uma mudança
+de contrato público deve consultar antes da implementação e acionamentos
+simultâneos devem produzir uma única consulta focada. Em `reviewed_plan`, o plano
+deve receber parecer antes da implementação. Respostas `revise` e
+`insufficient_information`, timeout, interrupção ou resposta inválida devem deixar
+a etapa pendente. O resultado observado comprova aquela execução, não enforcement
+geral do runtime.
 
 ## 1. Preparar sem afetar o uso diário
 

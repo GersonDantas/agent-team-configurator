@@ -5,55 +5,18 @@ import os
 from pathlib import Path
 import sys
 
+from team_schema import LEVELS, effective_team, requested_read_only
+
+
+MAX_CONTEXT_CHARS = 7800
+
 def _codex_home():
     return Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex")))
 
 
-def effective_team(data, cwd):
-    if data.get("schema_version") != 1:
-        raise ValueError("schema_version must be 1")
-    for section in ("levels", "agents", "limits"):
-        if not isinstance(data.get(section), dict):
-            raise ValueError(f"{section} must be an object")
-    if not isinstance(data.get("project_overrides", {}), dict):
-        raise ValueError("project_overrides must be an object")
-
-    team = json.loads(json.dumps(data))
-    path = str(Path(cwd).resolve())
-    matches = [
-        (root, value)
-        for root, value in data.get("project_overrides", {}).items()
-        if isinstance(root, str)
-        and isinstance(value, dict)
-        and (path == root or path.startswith(root.rstrip("/") + "/"))
-    ]
-    if matches:
-        _, override = max(matches, key=lambda pair: len(pair[0]))
-        for section in ("levels", "agents", "limits"):
-            for key, value in override.get(section, {}).items():
-                if isinstance(value, dict) and isinstance(team[section].get(key), dict):
-                    team[section][key].update(value)
-                else:
-                    team[section][key] = value
-    return team
-
-
-def requested_read_only(item):
-    has_requested = "requested_read_only" in item
-    has_legacy = "read_only" in item
-    if not has_requested and not has_legacy:
-        raise ValueError("agent permission intent is missing")
-    if has_requested and not isinstance(item["requested_read_only"], bool):
-        raise ValueError("requested_read_only must be boolean")
-    if has_legacy and not isinstance(item["read_only"], bool):
-        raise ValueError("read_only must be boolean")
-    if has_requested and has_legacy and item["requested_read_only"] != item["read_only"]:
-        raise ValueError("requested_read_only conflicts with legacy read_only")
-    return item["requested_read_only"] if has_requested else item["read_only"]
-
-
 def render_context(data, cwd):
     team = effective_team(data, cwd)
+    agent_instructions = []
     lines = [
         "# Personal agent team",
         "",
@@ -63,10 +26,12 @@ def render_context(data, cwd):
         "Agent levels never expand filesystem, network, write, or external-action permissions.",
         "Configured agent permissions are requests, not proof of the effective child sandbox. Confirm runtime metadata before claiming technical isolation.",
         "Do not repeat a consultation without new evidence or a new decision.",
+        "Multiple matching triggers produce one focused consultation. Exclusions may skip automatic convenience triggers, but never an explicit request, delegation prohibition, permission requirement, or stronger skill gate.",
+        "A missing, interrupted, invalid, or insufficient response leaves the consultation pending; it never approves the next gated step.",
         "",
         "Levels:",
     ]
-    for name in ("rotina", "analise", "critico", "estrategico"):
+    for name in LEVELS:
         item = team["levels"][name]
         fallbacks = ", ".join(item.get("fallbacks", [])) or "none"
         lines.append(
@@ -85,9 +50,46 @@ def render_context(data, cwd):
                     "runtime_permission=unverified; "
                     f"can_delegate={str(item['can_delegate']).lower()}; delegates_to={destinations}."
                 ),
-                f"  Instructions: {item['instructions'].strip()}",
             ]
         )
+        agent_instructions.append((name, item["instructions"].strip()))
+
+    active_workflow = team["workflow"]["active"]
+    workflow = team["workflow"]["definitions"][active_workflow]
+    lines.extend(["", f"Active workflow: {active_workflow}. {workflow['description']}"])
+    for step in workflow["steps"]:
+        dependencies = ",".join(step.get("after", [])) or "none"
+        lines.append(
+            f"- step={step['id']}; agent={step['agent']}; when={step['when']}; "
+            f"after={dependencies}; requires_response={str(step.get('requires_response', False)).lower()}."
+        )
+
+    configured_agents = [
+        (name, item)
+        for name, item in team["agents"].items()
+        if item.get("triggers") or item.get("response_contract") or item.get("exclusions")
+    ]
+    if configured_agents:
+        lines.extend(["", "Configured triggers and response gates:"])
+    for name, item in configured_agents:
+        for trigger in item.get("triggers", []):
+            lines.append(
+                f"- {name}.{trigger['id']}: timing={trigger['timing']}; "
+                f"required={str(trigger['required']).lower()}; {trigger['description']}"
+            )
+        if item.get("exclusions"):
+            lines.append(f"- {name} exclusions: " + " | ".join(item["exclusions"]))
+        contract = item.get("response_contract", {})
+        if contract:
+            lines.append(
+                f"- {name} response contract v{contract['contract_version']}: fields="
+                + ",".join(contract["required_fields"])
+                + "; outcomes="
+                + ",".join(contract["outcomes"])
+                + "; blocking="
+                + ",".join(contract["blocking_outcomes"])
+                + ". The executor must assess the response and address blockers before advancing."
+            )
 
     limits = team["limits"]
     configured_limits = []
@@ -101,9 +103,17 @@ def render_context(data, cwd):
         )
     lines.extend(["", "Limits: " + ("; ".join(configured_limits) if configured_limits else "use host defaults; no advisory call budget configured") + "."])
     lines.append(
-        "Delegation destinations and any call budget are behavioral policy unless a validated runtime guard reports enforcement."
+        "Delegation destinations, workflow transitions, trigger classification, response shape, and any call budget are behavioral policy unless a validated runtime guard reports enforcement."
     )
-    return "\n".join(lines)
+    lines.extend(["", "Agent instructions:"])
+    for name, instructions in agent_instructions:
+        lines.append(f"- {name}: {instructions}")
+    context = "\n".join(lines)
+    if len(context) > MAX_CONTEXT_CHARS:
+        raise ValueError(
+            "complete agent policy exceeds SessionStart context budget; shorten instructions or rules"
+        )
+    return context
 
 
 def main():

@@ -1,7 +1,8 @@
 # Plano técnico: equipe pessoal configurável
 
-Data: 17/09/2026. Estado: base implementada; controles rígidos de orçamento e
-telemetria continuam planejados.
+Data: 21/09/2026. Estado: workflows, acionamentos e contratos de resposta
+implementados como política comportamental; estado persistente, controles rígidos
+de orçamento e telemetria continuam planejados.
 
 ## 1. Resultado esperado e decisões aprovadas
 
@@ -88,6 +89,12 @@ Quatro componentes:
 3. Resolvedor: combina padrão, projeto, papel, nível, restrições e disponibilidade.
 4. Adaptador Codex: gera somente opções suportadas; identifica capacidades e
    nível de garantia. Guarda/registro apenas após o teste de viabilidade.
+
+O esquema v2 centraliza normalizacao, validacao e resolução por projeto em um
+modulo compartilhado entre aplicação e hook. Inclui acionamentos, exclusoes,
+contrato de resposta e dois workflows: consulta por gatilho e plano revisado.
+Esquemas v1 são normalizados em memoria sem inferir novos acionamentos e somente
+o `apply` autorizado persiste a v2.
 
 Local adotado: `$CODEX_HOME/personal-agent-team-codex/`, padrão `~/.codex/personal-agent-team-codex/`.
 Usar `team.toml` para escolhas, `projects/` para ajustes pessoais, `state/` para
