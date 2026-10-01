@@ -43,6 +43,11 @@ adicionar o marketplace.
 O passo a passo completo, incluindo verificação, atualização e remoção, está em
 [docs/instalacao.md](docs/instalacao.md).
 
+Para trocar modelos sem usar a skill interativa, consulte
+[docs/configuracao-manual-modelos.md](docs/configuracao-manual-modelos.md). O guia
+explica o mapa dos arquivos, a edição segura da especificação, validação,
+aplicação e overrides por projeto.
+
 ## O que configura
 
 - Executor e consultor iniciais.

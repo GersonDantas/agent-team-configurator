@@ -25,6 +25,10 @@ limites não entra no contexto.
 O guia completo de instalação, verificação, atualização e remoção está em
 [../../docs/instalacao.md](../../docs/instalacao.md).
 
+Para configurar modelos manualmente, sem depender da skill interativa, use
+[../../docs/configuracao-manual-modelos.md](../../docs/configuracao-manual-modelos.md).
+O procedimento preserva a validação e o journal do configurador.
+
 ## Uso manual em ambiente de teste
 
 ```sh
