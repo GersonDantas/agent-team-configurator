@@ -1,72 +1,73 @@
 # Agent Team Configurator
 
-Repositório multiplataforma para configurar equipes pessoais de agentes. A versão
-atual oferece o pacote Codex **Personal Agent Team**. Um adaptador para Claude Code
-está registrado no roadmap e será desenvolvido em outro pull request.
+A cross-platform repository for configuring personal agent teams. The current
+version provides the Codex **Personal Agent Team** package. A Claude Code adapter
+is listed on the roadmap and will be developed in a separate pull request.
 
-## Instalar no Codex
+## Install in Codex
 
-O plugin usa o mesmo fluxo de marketplace por GitHub adotado por plugins como o
-Ponytail. No terminal, execute:
+The plugin uses the same GitHub marketplace workflow adopted by plugins such as
+Ponytail. Run the following commands in a terminal:
 
 ```sh
 codex plugin marketplace add GersonDantas/agent-team-configurator
 codex plugin add personal-agent-team-codex@agent-team-configurator
 ```
 
-Depois, inicie o Codex CLI:
+Then start the Codex CLI:
 
 ```sh
 codex
 ```
 
-Dentro do CLI, abra `/hooks`, revise e confie o hook **Loading personal agent
-team**. O comando `/hooks` existe no Codex CLI; ele não aparece como comando no
-Codex App.
+Inside the CLI, open `/hooks`, review the **Loading personal agent team** hook,
+and mark it as trusted. The `/hooks` command is available in the Codex CLI; it
+does not appear as a command in the Codex App.
 
-Reinicie o Codex App, abra uma conversa nova e selecione **Personal Agent Team
-Codex: Configurar Equipe**, ou peça:
+Restart the Codex App, open a new conversation, and select **Personal Agent Team
+Codex: Configurar Equipe**, or ask:
 
-> Use configurar-equipe para configurar minha equipe pessoal de agentes.
+> Use configurar-equipe to configure my personal agent team.
 
-O hook injeta a política no início da sessão e após compactações, sem modificar
-`AGENTS.md`.
+The hook injects the policy at session start and after context compaction without
+modifying `AGENTS.md`.
 
-A instalação do plugin não altera modelos automaticamente. A skill apresenta a
-configuração, valida modelos, mostra os arquivos envolvidos e pede aprovação antes
-de escrever na configuração pessoal.
+Installing the plugin does not change models automatically. The skill presents
+the configuration, validates models, shows the files involved, and asks for
+approval before writing to the personal configuration.
 
-O repositório precisa estar público para instalação aberta. Enquanto estiver
-privado, somente contas com acesso ao repositório e GitHub autenticado poderão
-adicionar o marketplace.
+The repository must be public for open installation. While it is private, only
+accounts with repository access and authenticated GitHub credentials can add the
+marketplace.
 
-O passo a passo completo, incluindo verificação, atualização e remoção, está em
-[docs/instalacao.md](docs/instalacao.md).
+The complete installation guide, including verification, updates, and removal,
+is available in [docs/instalacao.md](docs/instalacao.md).
 
-Para trocar modelos sem usar a skill interativa, consulte
-[docs/configuracao-manual-modelos.md](docs/configuracao-manual-modelos.md). O guia
-explica o mapa dos arquivos, a edição segura da especificação, validação,
-aplicação e overrides por projeto.
+To change models without the interactive skill, see
+[docs/configuracao-manual-modelos.md](docs/configuracao-manual-modelos.md). The
+guide covers the file map, safe specification editing, validation, application,
+and per-project overrides.
 
-## O que configura
+## What it configures
 
-- Executor e consultor iniciais.
-- Especialistas pessoais opcionais.
-- Níveis Rotina, Análise, Crítico e Estratégico.
-- Modelos, esforços e alternativas aprovadas.
-- Concorrência opcional nas configurações avançadas; sem escolha explícita, o
-  plugin preserva a configuração existente ou o padrão do host.
-- Orçamento opcional de chamadas e destinos de delegação como política
-  orientativa até existir uma guarda de runtime validada.
-- Permissão somente leitura como intenção configurada, sempre distinguida do
-  sandbox efetivamente observado na thread.
-- Exceções pessoais por projeto, armazenadas fora do repositório do projeto.
-- Política carregada por hook no início da sessão, sem editar `AGENTS.md`.
-- Acionamentos e exclusões configuráveis por agente.
-- Workflows de consulta sob acionamento ou revisão obrigatória de plano.
-- Contrato de resposta com resultados que liberam ou mantêm a etapa pendente.
+- Initial executor and consultant agents.
+- Optional personal specialists.
+- Routine, Analysis, Critical, and Strategic levels.
+- Approved models, reasoning efforts, and fallbacks.
+- Optional concurrency in advanced settings. Without an explicit choice, the
+  plugin preserves the existing configuration or the host default.
+- Optional call budgets and delegation targets as advisory policy until a
+  validated runtime guard is available.
+- Read-only permission as configured intent, always distinguished from the
+  sandbox actually observed in the task.
+- Personal per-project exceptions stored outside the project repository.
+- Policy loaded by a session-start hook without editing `AGENTS.md`.
+- Configurable triggers and exclusions for each agent.
+- Workflows for trigger-based consultation or mandatory plan review.
+- A response contract with outcomes that either allow progress or keep a step
+  pending.
 
-## Estrutura atual
+## Current structure
 
 ```text
 .agents/plugins/marketplace.json
@@ -80,11 +81,11 @@ docs/
 scripts/build-submission.sh
 ```
 
-A arquitetura multiplataforma futura está documentada em
-[docs/roadmap-multiplataforma.md](docs/roadmap-multiplataforma.md). Ela não faz
-parte da implementação atual.
+The future cross-platform architecture is documented in
+[docs/roadmap-multiplataforma.md](docs/roadmap-multiplataforma.md). It is not
+part of the current implementation.
 
-## Testar
+## Test
 
 ```sh
 python3 plugins/personal-agent-team-codex/scripts/test_setup.py
@@ -92,28 +93,28 @@ python3 plugins/personal-agent-team-codex/scripts/test_team_config.py
 python3 plugins/personal-agent-team-codex/scripts/test_session_context.py
 ```
 
-Para teste de instalação limpa, use um `CODEX_HOME` temporário ou outro usuário do
-sistema. O guia detalhado está em
+For a clean-install test, use a temporary `CODEX_HOME` or another system user.
+The detailed guide is available in
 [docs/guia-testes-delegacao.md](docs/guia-testes-delegacao.md).
 
-## Pacote para submissão
+## Submission package
 
 ```sh
 scripts/build-submission.sh
 ```
 
-O ZIP é criado em `dist/personal-agent-team-codex-0.5.0.zip`. A submissão oficial
-ainda depende de testes reais no CLI/App, identidade verificada e materiais
-públicos exigidos pela loja.
+The ZIP is created at `dist/personal-agent-team-codex-0.5.0.zip`. Official store
+submission still depends on real CLI/App tests, verified identity, and the public
+materials required by the store.
 
-## Recuperação de versões antigas
+## Recover older versions
 
-`setup.py` existe somente para restaurar instalações legadas 0.1 que possuam
-`executor-consultor-state.json`. Ele recusa novas instalações. Após restaurar a
-versão antiga, use `configurar-equipe` para uma instalação 0.2 limpa.
+`setup.py` exists only to restore legacy 0.1 installations that contain
+`executor-consultor-state.json`. It refuses new installations. After restoring
+the old version, use `configurar-equipe` for a clean 0.2 installation.
 
-## Privacidade
+## Privacy
 
-Configurações, journals e backups pessoais não fazem parte do repositório ou do
-ZIP. Não publique esses arquivos. O hook lê apenas `team.json` localmente e o
-plugin não envia dados por conta própria.
+Personal configurations, journals, and backups are not included in the
+repository or ZIP. Do not publish these files. The hook reads only the local
+`team.json`, and the plugin does not send data on its own.
