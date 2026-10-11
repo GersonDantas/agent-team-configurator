@@ -1,83 +1,82 @@
 # Personal Agent Team for Codex
 
-Plugin Codex para configurar uma equipe pessoal com executor, consultor,
-especialistas opcionais, níveis, modelos, limites, acionamentos e workflows.
+Codex plugin for configuring a personal team with an executor, consultant,
+optional specialists, levels, models, limits, triggers, and workflows.
 
-## Instalação pelo repositório
+## Install from the repository
 
 ```sh
 codex plugin marketplace add GersonDantas/agent-team-configurator
 codex plugin add personal-agent-team-codex@agent-team-configurator
 ```
 
-Abra `codex` no terminal e, dentro do Codex CLI, execute `/hooks`. Revise e confie
-o hook **Loading personal agent team**. O comando `/hooks` não aparece no Codex
-App.
+Open `codex` in a terminal and run `/hooks` inside the Codex CLI. Review and trust
+the **Loading personal agent team** hook. The `/hooks` command does not appear in
+the Codex App.
 
-Reinicie o Codex App, abra uma conversa nova e use `configurar-equipe`. A skill
-valida modelos e mostra uma prévia antes de alterar a configuração pessoal.
+Restart the Codex App, open a new conversation, and use `configurar-equipe`. The
+skill validates models and shows a preview before changing personal configuration.
 
-Na primeira conversa após instalar ou atualizar, o hook carrega a política no
-início e após compactações, sem editar `AGENTS.md`. Sem a confiança registrada no
-CLI, os agentes continuam configurados, mas a política de seleção, delegação e
-limites não entra no contexto.
+In the first conversation after installation or update, the hook loads policy
+at startup and after compaction without editing `AGENTS.md`. Without trust
+recorded in the CLI, agents remain configured, but selection, delegation, and
+limit policies are not loaded into context.
 
-O guia completo de instalação, verificação, atualização e remoção está em
-[../../docs/instalacao.md](../../docs/instalacao.md).
+The complete installation, verification, update, and removal guide is available
+in [../../docs/installation.md](../../docs/installation.md).
 
-Para configurar modelos manualmente, sem depender da skill interativa, use
-[../../docs/configuracao-manual-modelos.md](../../docs/configuracao-manual-modelos.md).
-O procedimento preserva a validação e o journal do configurador.
+To configure models manually without the interactive skill, use
+[../../docs/manual-models-configuration.md](../../docs/manual-models-configuration.md).
+The procedure preserves configurator validation and the journal.
 
-## Uso manual em ambiente de teste
+## Manual use in a test environment
 
 ```sh
-python3 scripts/team_config.py defaults > /tmp/equipe.json
-python3 scripts/team_config.py plan --spec /tmp/equipe.json
-python3 scripts/team_config.py apply --spec /tmp/equipe.json
+python3 scripts/team_config.py defaults > /tmp/team.json
+python3 scripts/team_config.py plan --spec /tmp/team.json
+python3 scripts/team_config.py apply --spec /tmp/team.json
 ```
 
-Revise o arquivo temporário antes de aplicar. Concorrência é uma opção avançada e
-usa o controle nativo quando configurada e suportada pelo host. O orçamento total
-de chamadas e os destinos de delegação são políticas orientativas. Uma permissão
-`read-only` no agente representa a intenção configurada; confirme o sandbox real
-nos metadados da thread antes de tratar o agente como tecnicamente isolado.
+Review the temporary file before applying. Concurrency is an advanced option and
+uses native controls when configured and supported by the host. Total call
+budgets and delegation targets are advisory policies. An agent's `read-only`
+permission represents configured intent; confirm the actual sandbox in task
+metadata before treating the agent as technically isolated.
 
-O workflow recomendado `consultation_on_trigger` consulta apenas quando um
-acionamento configurado se aplica. `reviewed_plan` exige parecer sobre o plano
-antes da implementação. Transições, classificação de acionamentos e formato da
-resposta são políticas comportamentais enquanto não houver uma guarda de runtime
-validada. Configurações v1 continuam legíveis e são persistidas como v2 no próximo
-`apply`, sem criação automática de acionamentos obrigatórios.
+The recommended `consultation_on_trigger` workflow consults only when a configured
+trigger applies. `reviewed_plan` requires a review of the plan before
+implementation. Transitions, trigger classification, and response format remain
+behavioral policies until a validated runtime guard exists. Version 1
+configurations remain readable and are persisted as version 2 on the next `apply`,
+without automatically creating mandatory triggers.
 
-## Remover uma instalação 0.2 ou posterior
+## Remove a version 0.2 or later installation
 
 ```sh
 python3 scripts/team_config.py uninstall --dry-run
 python3 scripts/team_config.py uninstall
 ```
 
-A restauração recusa sobrescrever mudanças posteriores. O backup
-`personal-agent-team-codex-state.json` é privado e não deve ser publicado.
-Ao atualizar uma instalação 0.2, o configurador restaura a versão de `AGENTS.md`
-guardada no journal e passa a usar o hook.
+Restoration refuses to overwrite later changes. The
+`personal-agent-team-codex-state.json` backup is private and must not be published.
+When updating a version 0.2 installation, the configurator restores the version
+of `AGENTS.md` saved in the journal and switches to the hook.
 
-## Recuperar uma instalação legada 0.1
+## Recover a legacy version 0.1 installation
 
 ```sh
 python3 scripts/setup.py --uninstall
 ```
 
-`setup.py` é somente um recuperador legado e recusa novas instalações. Restaure a
-versão antiga antes de iniciar uma instalação 0.2.
+`setup.py` is only a legacy recovery tool and refuses new installations. Restore
+the old version before starting a version 0.2 installation.
 
-## Verificação
+## Verification
 
 ```sh
 python3 scripts/test_team_config.py
 python3 scripts/test_session_context.py
 ```
 
-Confira chamadas reais e metadados do modelo, não apenas declarações do agente.
-Compare qualidade, consumo e tempo em tarefas equivalentes. Não há garantia de
-economia.
+Check actual calls and model metadata, not just agent declarations. Compare
+quality, usage, and time across equivalent tasks. Savings are not guaranteed.

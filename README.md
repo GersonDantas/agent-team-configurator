@@ -49,10 +49,10 @@ accounts with repository access and authenticated GitHub credentials can add the
 marketplace.
 
 The complete installation guide, including verification, updates, and removal,
-is available in [docs/instalacao.md](docs/instalacao.md).
+is available in [docs/installation.md](docs/installation.md).
 
 To change models without the interactive skill, see
-[docs/configuracao-manual-modelos.md](docs/configuracao-manual-modelos.md). The
+[docs/manual-models-configuration.md](docs/manual-models-configuration.md). The
 guide covers the file map, safe specification editing, validation, application,
 and per-project overrides.
 
@@ -90,7 +90,7 @@ scripts/build-submission.sh
 ```
 
 The future cross-platform architecture is documented in
-[docs/roadmap-multiplataforma.md](docs/roadmap-multiplataforma.md). It is not
+[docs/cross-platform-roadmap.md](docs/cross-platform-roadmap.md). It is not
 part of the current implementation.
 
 ## Test
@@ -103,7 +103,7 @@ python3 plugins/personal-agent-team-codex/scripts/test_session_context.py
 
 For a clean-install test, use a temporary `CODEX_HOME` or another system user.
 The detailed guide is available in
-[docs/guia-testes-delegacao.md](docs/guia-testes-delegacao.md).
+[docs/delegation-test-guide.md](docs/delegation-test-guide.md).
 
 ## Submission package
 

@@ -1,96 +1,96 @@
-# Configuração manual de modelos
+# Manual model configuration
 
-Este guia mostra como trocar modelos e esforços sem usar a skill interativa. O
-procedimento continua usando o configurador do plugin para validar a política,
-atualizar todos os arquivos relacionados e preservar os backups.
+This guide explains how to change models and reasoning efforts without the
+interactive skill. The procedure still uses the plugin configurator to validate
+the policy, update related files, and preserve backups.
 
-> **Não edite os arquivos gerados isoladamente.** Alterar diretamente
-> `config.toml`, `agents/*.toml` ou o journal pode deixar a política
-> inconsistente e impedir uma atualização ou remoção posterior.
+> **Do not edit generated files independently.** Direct changes to `config.toml`,
+> `agents/*.toml`, or the journal can leave the policy inconsistent and prevent
+> a later update or removal.
 
-## Mapa dos arquivos
+## File map
 
-`CODEX_HOME` normalmente é `~/.codex`. Se a variável estiver configurada, use o
-diretório indicado por ela.
+`CODEX_HOME` defaults to `~/.codex`. If the environment variable is configured,
+use the directory it specifies.
 
 ```text
 $CODEX_HOME/
 ├── personal-agent-team-codex/
-│   └── team.json                  # fonte principal da política
+│   └── team.json                  # main policy source
 ├── agents/
-│   ├── consultor.toml             # agente executável do consultor
-│   └── explorador.toml            # agente executável do explorador, se configurado
-├── config.toml                    # modelo do executor e concorrência
+│   ├── consultor.toml             # executable consultant agent
+│   └── explorador.toml            # executable explorer agent, if configured
+├── config.toml                    # executor model and concurrency
 └── personal-agent-team-codex-state.json
-                                    # backup privado e controle de alterações
+                                    # private backup and change tracking
 
 plugins/personal-agent-team-codex/
-├── hooks/hooks.json               # inicia o carregamento da política
+├── hooks/hooks.json               # starts policy loading
 └── scripts/
-    ├── session_context.py         # transforma team.json em instruções
-    ├── team_config.py             # plan, apply, resolve e uninstall
-    └── team_schema.py             # valida estrutura e referências
+    ├── session_context.py         # turns team.json into instructions
+    ├── team_config.py             # plan, apply, resolve, and uninstall
+    └── team_schema.py             # validates structure and references
 ```
 
-Os caminhos dentro de `plugins/` são relativos a uma cópia deste repositório. O
-cache interno do Codex contém os mesmos arquivos, mas seu caminho inclui a versão
-instalada e pode mudar após uma atualização.
+Paths under `plugins/` are relative to a copy of this repository. The internal
+Codex cache contains the same files, but its path includes the installed version
+and can change after an update.
 
-## O que cada arquivo controla
+## What each file controls
 
 ### `personal-agent-team-codex/team.json`
 
-É a especificação canônica da equipe. As principais seções são:
+This is the canonical team specification. Its main sections are:
 
-- `levels`: modelo, esforço e alternativas de cada nível;
-- `agents`: nível padrão, nível máximo, delegação, permissão solicitada e
-  instruções de cada agente;
-- `workflow`: fluxo ativo e suas etapas;
-- `limits`: concorrência e orçamento orientativo de chamadas;
-- `project_overrides`: substituições pessoais por caminho absoluto de projeto.
+- `levels`: model, effort, and fallbacks for each level;
+- `agents`: default level, maximum level, delegation, requested permission, and
+  instructions for each agent;
+- `workflow`: active workflow and its steps;
+- `limits`: concurrency and advisory call budget;
+- `project_overrides`: personal overrides keyed by absolute project path.
 
-Os agentes apontam para níveis. Portanto, trocar o modelo de um nível afeta todos
-os agentes que usam esse nível como padrão ou o selecionam durante uma tarefa.
+Agents refer to levels. Changing a level's model therefore affects every agent
+that uses that level by default or selects it during a task.
 
 ### `config.toml`
 
-O executor é a própria conversa principal e não possui
-`agents/executor.toml`. O configurador grava em `config.toml` o modelo e o
-esforço correspondentes ao `default_level` do executor. Quando configurada, a
-concorrência também é registrada nesse arquivo.
+The executor is the main conversation itself and has no `agents/executor.toml`.
+The configurator writes the model and effort corresponding to the executor's
+`default_level` into `config.toml`. When configured, concurrency is also recorded
+in this file.
 
-Esse arquivo pode conter tokens, endpoints e configurações de serviços. Não o
-publique nem copie seu conteúdo completo para relatórios.
+This file may contain tokens, endpoints, and service configuration. Do not publish
+it or copy its complete contents into reports.
 
-### `agents/<nome>.toml`
+### `agents/<name>.toml`
 
-Cada subagente possui um TOML gerado a partir de `team.json`. Ele contém modelo,
-esforço, sandbox solicitado e instruções executáveis. Acionamentos, workflows e
-contratos de resposta permanecem na política central e são carregados pelo hook.
+Each subagent has a TOML generated from `team.json`. It contains the model,
+effort, requested sandbox, and executable instructions. Triggers, workflows, and
+response contracts remain in the central policy and are loaded by the hook.
 
-Uma permissão `read-only` é uma solicitação. Confirme o sandbox efetivo pelos
-metadados da execução antes de tratar o agente como tecnicamente isolado.
+A `read-only` permission is a request. Confirm the effective sandbox through
+execution metadata before treating the agent as technically isolated.
 
 ### `personal-agent-team-codex-state.json`
 
-É o journal privado usado para detectar alterações externas e restaurar os
-arquivos anteriores durante a remoção. Ele pode conter uma cópia de
-`config.toml`, inclusive dados confidenciais. Não o edite nem compartilhe.
+This private journal detects external changes and restores previous files during
+removal. It may contain a copy of `config.toml`, including confidential data.
+Do not edit or share it.
 
-## Trocar modelos com segurança
+## Change models safely
 
-Execute os comandos a partir da raiz de uma cópia deste repositório.
-O configurador requer Python 3.11 ou superior, pois usa `tomllib` da biblioteca
-padrão. Confira o interpretador antes de continuar:
+Run these commands from the root of a copy of this repository. The configurator
+requires Python 3.11 or later because it uses the standard library's `tomllib`.
+Check the interpreter before continuing:
 
 ```sh
 python3 --version
 ```
 
-### 1. Copie a política ativa
+### 1. Copy the active policy
 
-Crie uma cópia privada em um caminho temporário exclusivo. Mantenha a mesma
-sessão do terminal para usar a variável `manual_spec` nos passos seguintes.
+Create a private copy at a unique temporary path. Keep the same terminal session
+so you can use `manual_spec` in the following steps.
 
 ```sh
 manual_spec=$(mktemp "${TMPDIR:-/tmp}/personal-agent-team.XXXXXX")
@@ -98,7 +98,7 @@ chmod 600 "$manual_spec"
 cp "${CODEX_HOME:-$HOME/.codex}/personal-agent-team-codex/team.json" "$manual_spec"
 ```
 
-Se ainda não houver uma equipe, gere uma especificação inicial:
+If no team exists yet, generate an initial specification:
 
 ```sh
 manual_spec=$(mktemp "${TMPDIR:-/tmp}/personal-agent-team.XXXXXX")
@@ -106,37 +106,37 @@ chmod 600 "$manual_spec"
 python3 plugins/personal-agent-team-codex/scripts/team_config.py defaults > "$manual_spec"
 ```
 
-### 2. Edite somente a cópia
+### 2. Edit only the copy
 
-Abra o caminho armazenado em `manual_spec` e altere os campos desejados em
-`levels`. Para exibir o caminho:
+Open the path stored in `manual_spec` and change the desired fields in `levels`.
+To display the path:
 
 ```sh
 echo "$manual_spec"
 ```
 
-Exemplo da seção a editar:
+Example of the section to edit:
 
 ```json
 {
   "levels": {
     "rotina": {
-      "model": "MODELO_ROTINA",
+      "model": "ROUTINE_MODEL",
       "effort": "low",
       "fallbacks": []
     },
     "analise": {
-      "model": "MODELO_ANALISE",
+      "model": "ANALYSIS_MODEL",
       "effort": "medium",
       "fallbacks": []
     },
     "critico": {
-      "model": "MODELO_CRITICO",
+      "model": "CRITICAL_MODEL",
       "effort": "high",
       "fallbacks": []
     },
     "estrategico": {
-      "model": "MODELO_ESTRATEGICO",
+      "model": "STRATEGIC_MODEL",
       "effort": "xhigh",
       "fallbacks": []
     }
@@ -144,56 +144,57 @@ Exemplo da seção a editar:
 }
 ```
 
-O trecho acima é ilustrativo. Preserve as demais seções da especificação real.
-Os esforços aceitos pelo schema atual são `none`, `minimal`, `low`, `medium`,
-`high`, `xhigh`, `max` e `ultra`, mas cada modelo pode aceitar apenas parte
-deles. Confirme a disponibilidade e o esforço suportado no catálogo do Codex da
-máquina.
+This snippet is illustrative. Preserve the remaining sections of the actual
+specification. The level keys `rotina`, `analise`, `critico`, and `estrategico`
+are schema identifiers and must keep their original spelling.
 
-Para mudar qual nível um agente utiliza, altere `default_level` em `agents`. O
-valor não pode ultrapassar o `max_level` daquele agente.
+The current schema accepts efforts `none`, `minimal`, `low`, `medium`, `high`,
+`xhigh`, `max`, and `ultra`, but each model may support only some of them. Confirm
+availability and supported efforts in the machine's Codex model catalog.
 
-### 3. Valide sem escrever
+To change the level an agent uses, edit `default_level` in `agents`. It cannot
+exceed that agent's `max_level`.
+
+### 3. Validate without writing
 
 ```sh
 python3 plugins/personal-agent-team-codex/scripts/team_config.py \
   plan --spec "$manual_spec"
 ```
 
-O comando deve terminar com sucesso e mostrar a prévia dos agentes, limites,
-workflow, acionamentos obrigatórios e arquivos que serão atualizados.
+The command should succeed and show a preview of agents, limits, workflow,
+mandatory triggers, and files to be updated.
 
-### 4. Aplique a especificação validada
+### 4. Apply the validated specification
 
 ```sh
 python3 plugins/personal-agent-team-codex/scripts/team_config.py \
   apply --spec "$manual_spec"
 ```
 
-O configurador atualiza de forma coordenada:
+The configurator updates these files together:
 
 - `personal-agent-team-codex/team.json`;
-- modelo e esforço do executor em `config.toml`;
-- TOMLs dos subagentes em `agents/`;
-- journal privado de restauração.
+- executor model and effort in `config.toml`;
+- subagent TOMLs in `agents/`;
+- the private restoration journal.
 
-Se houver uma alteração posterior em algum arquivo gerenciado, tanto `plan`
-quanto `apply` recusam continuar. Nesse caso, compare a configuração atual com o
-journal e concilie a mudança antes de tentar novamente. Não apague o journal para
-contornar a proteção.
+If a managed file has been changed afterward, both `plan` and `apply` refuse to
+continue. Compare the current configuration with the journal and reconcile the
+change before retrying. Do not delete the journal to bypass this protection.
 
-## Configuração diferente por projeto
+## Different configuration per project
 
-Use `project_overrides` quando um projeto precisar de modelos ou esforços
-diferentes. A chave deve ser o caminho absoluto do projeto:
+Use `project_overrides` when a project needs different models or efforts. The key
+must be the project's absolute path:
 
 ```json
 {
   "project_overrides": {
-    "/caminho/absoluto/do/projeto": {
+    "/absolute/path/to/project": {
       "levels": {
         "estrategico": {
-          "model": "MODELO_ESTRATEGICO_DO_PROJETO",
+          "model": "PROJECT_STRATEGIC_MODEL",
           "effort": "high",
           "fallbacks": []
         }
@@ -203,61 +204,61 @@ diferentes. A chave deve ser o caminho absoluto do projeto:
 }
 ```
 
-O override mais específico é aplicado. Overrides de diretórios ancestrais não
-são combinados automaticamente com o vencedor.
+The most specific override is applied. Overrides for ancestor directories are
+not automatically combined with the winning override.
 
-Overrides representam a política desejada para aquela árvore de projeto. O
-`apply` gera `config.toml` e `agents/*.toml` a partir dos níveis globais; o hook
-carrega no contexto a política efetiva do projeto, mas não reescreve esses TOMLs
-a cada conversa. Portanto, um override de modelo não é prova de que o runtime
-lançou o agente com aquele modelo. Use `resolve` para inspecionar a seleção
-esperada e confirme a execução real pelos metadados da chamada.
+Overrides represent the desired policy for that project tree. `apply` generates
+`config.toml` and `agents/*.toml` from global levels; the hook loads the effective
+project policy into context but does not rewrite those TOMLs for each
+conversation. A model override therefore does not prove that the runtime launched
+the agent with that model. Use `resolve` to inspect the expected selection and
+confirm actual execution through call metadata.
 
-## Verificar a configuração efetiva
+## Verify the effective configuration
 
-Resolva um agente para o projeto desejado:
+Resolve an agent for the desired project:
 
 ```sh
 python3 plugins/personal-agent-team-codex/scripts/team_config.py \
   resolve \
-  --cwd "/caminho/absoluto/do/projeto" \
+  --cwd "/absolute/path/to/project" \
   --agent consultor
 ```
 
-Depois, abra uma conversa nova no Codex. O hook `SessionStart` carrega a política
-no início da sessão e após compactações. Conversas já abertas podem continuar com
-o contexto anterior.
+Then open a new conversation in Codex. The `SessionStart` hook loads the policy
+at session start and after compaction. Existing conversations may retain their
+previous context.
 
-Para validar a execução real, faça um pedido explícito de consulta e confira nos
-metadados da chamada:
+To validate actual execution, explicitly request a consultation and check the
+call metadata for:
 
-- agente chamado;
-- modelo e esforço efetivos;
-- sandbox observado;
-- formato e resultado da resposta.
+- the agent called;
+- effective model and effort;
+- observed sandbox;
+- response format and outcome.
 
-O conteúdo declarado pelo próprio agente não prova sua identidade ou permissão.
-O resultado de `resolve` também não prova a execução. Use os metadados fornecidos
-pelo runtime para confirmar modelo, esforço e sandbox efetivos.
+An agent's own declarations do not prove its identity or permissions. The result
+of `resolve` does not prove execution either. Use runtime metadata to confirm the
+effective model, effort, and sandbox.
 
-## Fluxo de carregamento
+## Loading flow
 
 ```mermaid
 flowchart LR
     H["hooks.json<br/>SessionStart"] --> S["session_context.py"]
-    S --> T["team.json<br/>política central"]
+    S --> T["team.json<br/>central policy"]
 
     T --> E["Executor<br/>config.toml"]
-    T --> C["Consultor<br/>agents/consultor.toml"]
-    T --> X["Explorador<br/>agents/explorador.toml"]
+    T --> C["Consultant<br/>agents/consultor.toml"]
+    T --> X["Explorer<br/>agents/explorador.toml"]
 
-    E -->|delega| C
-    E -->|delega| X
+    E -->|delegates| C
+    E -->|delegates| X
 
-    TC["team_config.py"] -->|valida com| TS["team_schema.py"]
-    TC -->|atualiza| T
-    TC -->|gera| C
-    TC -->|gera| X
-    TC -->|atualiza| E
-    TC -->|registra antes e depois| B["journal privado"]
+    TC["team_config.py"] -->|validates with| TS["team_schema.py"]
+    TC -->|updates| T
+    TC -->|generates| C
+    TC -->|generates| X
+    TC -->|updates| E
+    TC -->|records before and after| B["private journal"]
 ```
