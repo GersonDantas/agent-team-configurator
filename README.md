@@ -4,6 +4,14 @@ A cross-platform repository for configuring personal agent teams. The current
 version provides the Codex **Personal Agent Team** package. A Claude Code adapter
 is listed on the roadmap and will be developed in a separate pull request.
 
+<p align="center">
+  <a href="https://buymeacoffee.com/gersonformd" target="_blank" rel="noopener noreferrer">
+    <img src="https://github.com/GersonDantas/img/blob/5eb8ac5db321c0b956fd20f1605b8bce8de8e684/qr-code.png" alt="Buy Me a Coffee" height="200">
+  </a>
+</p>
+
+<p align="center">Enjoying Agent Team Configurator? Support the project with a coffee ☕</p>
+
 ## Install in Codex
 
 The plugin uses the same GitHub marketplace workflow adopted by plugins such as
