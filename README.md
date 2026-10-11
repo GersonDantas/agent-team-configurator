@@ -5,8 +5,8 @@ version provides the Codex **Personal Agent Team** package. A Claude Code adapte
 is listed on the roadmap and will be developed in a separate pull request.
 
 <p align="center">
-  <a href="https://buymeacoffee.com/gersonformd" target="_blank" rel="noopener noreferrer">
-    <img src="https://github.com/GersonDantas/img/blob/5eb8ac5db321c0b956fd20f1605b8bce8de8e684/qr-code.png" alt="Buy Me a Coffee" height="200">
+  <a href="https://ko-fi.com/gerson_dantas" target="_blank" rel="noopener noreferrer">
+    <img src="https://github.com/GersonDantas/img/blob/b81c0ba4adb694a7a65a91f64f7a1670d4d5c101/qrcode.png" alt="Buy Me a Coffee" height="200">
   </a>
 </p>
 
